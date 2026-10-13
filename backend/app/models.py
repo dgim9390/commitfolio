@@ -91,6 +91,37 @@ class CollectStats(BaseModel):
     api: ApiStats
 
 
+class GroupLink(BaseModel):
+    """두 커밋을 같은 그룹으로 묶은 근거 (결과 설명·튜닝용)."""
+
+    a: str  # 커밋 SHA
+    b: str
+    score: float
+    reason: str
+
+
+class WorkGroup(BaseModel):
+    """'기능 단위 작업' 하나. 4단계에서 그룹마다 LLM 요약을 한 번 한다."""
+
+    id: int
+    commit_shas: list[str]  # 오래된 순
+    started_at: datetime
+    ended_at: datetime
+    paths: list[str] = Field(default_factory=list)  # 이 작업을 대표하는 경로
+    keywords: list[str] = Field(default_factory=list)  # 커밋 메시지에서 뽑은 대표 단어
+    links: list[GroupLink] = Field(default_factory=list)
+
+
+class ExcludedCommit(BaseModel):
+    sha: str
+    reason: str  # rules.EXCLUDE_LABELS의 키
+
+
+class GroupingResult(BaseModel):
+    groups: list[WorkGroup]  # 시작 시각 순
+    excluded: list[ExcludedCommit] = Field(default_factory=list)  # 분석에서 뺀 커밋
+
+
 class CollectResult(BaseModel):
     repo: RepoInfo
     username: str
