@@ -1,0 +1,19 @@
+# 비밀값
+.env
+
+# 캐시 (GitHub API 응답, 클론한 레포)
+.cache/
+*.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store
