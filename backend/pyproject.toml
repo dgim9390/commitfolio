@@ -5,12 +5,14 @@ description = "GitHub 커밋을 분석해 이력서·회고·포트폴리오 문
 requires-python = ">=3.11"
 dependencies = [
     "anthropic>=1.13.0",
+    "fastapi>=0.143.0",
     "google-genai>=2.30.0",
     "httpx>=0.28.1",
     "pydantic>=2.14.1",
     "pydantic-settings>=2.15.0",
     "rich>=15.0.0",
     "typer>=0.27.3",
+    "uvicorn[standard]>=0.54.0",
 ]
 
 [project.scripts]
