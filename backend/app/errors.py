@@ -63,3 +63,15 @@ class GitError(CommitFolioError):
 
 class LLMError(CommitFolioError):
     """Claude API 호출 실패 (키 없음, 한도 초과, 거절 등)."""
+
+
+class RepoTooLargeError(CommitFolioError):
+    def __init__(self, full_name: str, size_mb: float, limit_mb: int):
+        super().__init__(f"레포 {full_name}가 너무 큽니다 ({size_mb:.0f}MB, 상한 {limit_mb}MB). 더 작은 레포로 시도해 주세요.")
+
+
+class TooManyCommitsError(CommitFolioError):
+    def __init__(self, count: int, limit: int):
+        super().__init__(
+            f"분석할 커밋이 {count}개로 너무 많습니다 (상한 {limit}개). 시작일·종료일로 기간을 좁혀 주세요."
+        )

@@ -86,6 +86,29 @@ uv run commitfolio group dgim9390/DeskBoard -u dgim9390 --explain    # 2. 커밋
 uv run commitfolio generate dgim9390/DeskBoard -u dgim9390           # 3. 포트폴리오·발표 자료 생성
 ```
 
+## 배포 (웹사이트로 올리기)
+
+화면과 API를 **Docker 컨테이너 하나**로 묶었습니다([`Dockerfile`](Dockerfile)). 빌드된 화면을 백엔드가 함께 내보내서 주소 하나로 동작하므로, Docker를 지원하는 호스팅(Render, Railway 등)에 레포를 연결하면 됩니다.
+
+1. 호스팅 서비스에서 이 GitHub 레포를 연결하고, 빌드 방식으로 Dockerfile을 고릅니다. 포트는 `PORT` 환경변수를 따릅니다(기본 8000).
+2. 환경변수를 설정합니다. 비밀값은 이미지에 들어가지 않고(`.dockerignore`), 호스팅 서비스의 환경변수 설정에만 넣습니다.
+
+| 이름 | 권장값 | 이유 |
+|---|---|---|
+| `GEMINI_API_KEY` | AI Studio에서 발급한 키 | |
+| `GITHUB_TOKEN` | **공개 레포 읽기 전용** Fine-grained 토큰 | 서버에는 계정 전체 권한이 있는 토큰(`gh auth token` 등)을 두지 않습니다 |
+| `ACCESS_CODE` | 아는 사람끼리만 공유할 코드 | 코드를 모르면 분석도, 결과 보기도 할 수 없습니다 |
+| `DAILY_ANALYSIS_LIMIT` | 예: `15` | Gemini 무료 한도는 프로젝트 단위라 방문자 전원이 나눠 씁니다 |
+| `PER_IP_DAILY_LIMIT` | 예: `5` | 한 사람이 한도를 다 쓰지 못하게 합니다 |
+| `CACHE_DIR` | 디스크가 유지되는 볼륨 경로 (예: `/data`) | 없으면 재시작할 때 결과 링크·직접 수정본·캐시가 사라집니다 |
+
+**함께 들어간 보호 장치:**
+- 레포가 `MAX_REPO_SIZE_MB`(기본 500MB)보다 크면 클론하지 않습니다.
+- 분석할 커밋이 `MAX_COMMITS`(기본 400개)보다 많으면 기간을 좁혀 달라고 안내합니다.
+- IP 제한은 호스팅 프록시가 붙이는 값을 기준으로 해서, 방문자가 IP를 위장해 우회할 수 없습니다.
+
+**무료 호스팅의 한계 (Render 무료 기준):** 15분 동안 접속이 없으면 잠들고, 다시 깨어나는 데 최대 1분 걸립니다. 디스크가 유지되지 않아 재시작하면 저장된 결과가 사라집니다.
+
 ## 환경변수
 
 `.env` 파일에 넣습니다. `.env`는 `.gitignore`에 들어 있어 커밋되지 않습니다.
@@ -167,10 +190,12 @@ DeskBoard(커밋 39개) 기준으로 GitHub API 5회, AI 호출 3회가 듭니�
 ```
 commitfolio/
 ├── .env.example
+├── Dockerfile                   배포용 이미지 (화면 빌드 + API, 컨테이너 하나)
 ├── backend/                     Python · FastAPI · uv
 │   ├── app/
 │   │   ├── main.py              FastAPI 앱
 │   │   ├── api/jobs.py          분석 작업(백그라운드 스레드)·결과·직접 수정본 저장
+│   │   ├── api/limits.py        하루 분석 횟수 제한
 │   │   ├── cli.py               터미널 명령 (collect / group / generate)
 │   │   ├── config.py            환경변수 설정
 │   │   ├── errors.py            사용자에게 보여줄 한국어 에러
@@ -222,4 +247,3 @@ cd frontend && npm run build       # 타입 검사 + 빌드
 ## 다음 단계
 
 - GitHub OAuth 로그인과 비공개 레포 분석
-- 배포

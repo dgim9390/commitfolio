@@ -14,7 +14,14 @@ from collections.abc import Callable
 from datetime import date, datetime, timezone
 
 from app.config import Settings, get_settings
-from app.errors import InvalidRepoUrlError, RateLimitError, RepoNotFoundError, UserNotFoundError
+from app.errors import (
+    InvalidRepoUrlError,
+    RateLimitError,
+    RepoNotFoundError,
+    RepoTooLargeError,
+    TooManyCommitsError,
+    UserNotFoundError,
+)
 from app.github.cache import HttpCache
 from app.github.client import GitHubClient, NotFoundError
 from app.github.local_repo import LocalRepo, parse_patch
@@ -63,10 +70,12 @@ def collect(
             raise RateLimitError(rate.rate_limit_reset, rate.authenticated)
 
         report("repo", f"{owner}/{name} 정보 가져오는 중")
-        repo = _fetch_repo_info(client, owner, name)
+        repo = _fetch_repo_info(client, owner, name, settings.max_repo_size_mb)
 
         report("commits", f"{username}의 커밋 목록 가져오는 중")
         commits = _fetch_user_commits(client, repo, username, since, until)
+        if len(commits) > settings.max_commits:
+            raise TooManyCommitsError(len(commits), settings.max_commits)
 
         report("pulls", "머지된 PR 가져오는 중")
         prs = _fetch_merged_prs(client, repo, username, since, until)
@@ -122,7 +131,7 @@ def collect(
 # ----------------------------------------------------------------------
 
 
-def _fetch_repo_info(client: GitHubClient, owner: str, name: str) -> RepoInfo:
+def _fetch_repo_info(client: GitHubClient, owner: str, name: str, max_size_mb: int) -> RepoInfo:
     try:
         meta = client.get(f"/repos/{owner}/{name}")
     except NotFoundError:
@@ -130,6 +139,9 @@ def _fetch_repo_info(client: GitHubClient, owner: str, name: str) -> RepoInfo:
 
     # GitHub는 대소문자를 바꿔 넣어도 찾아 주므로, 이후 요청엔 정식 이름을 쓴다
     owner, name = meta["owner"]["login"], meta["name"]
+    size_mb = meta.get("size", 0) / 1024  # GitHub는 KB 단위로 준다
+    if size_mb > max_size_mb:
+        raise RepoTooLargeError(f"{owner}/{name}", size_mb, max_size_mb)
     languages = client.get(f"/repos/{owner}/{name}/languages")
     try:
         readme_json = client.get(f"/repos/{owner}/{name}/readme")

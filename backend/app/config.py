@@ -28,6 +28,15 @@ class Settings(BaseSettings):
 
     # GitHub API 응답(SQLite)과 클론한 레포가 저장되는 곳
     cache_dir: Path = ROOT_DIR / ".cache"
+    # 빌드된 프론트엔드 폴더. 있으면 백엔드가 화면까지 함께 내보낸다 (배포용: 주소 하나로 동작)
+    static_dir: Path = ROOT_DIR / "frontend" / "dist"
+
+    # ---- 배포용 보호 장치 (로컬에서는 비워 두면 꺼짐)
+    access_code: str = ""  # 설정하면 이 코드를 아는 사람만 분석·결과 보기 가능
+    daily_analysis_limit: int = 0  # 하루 전체 분석 횟수 상한 (0 = 제한 없음)
+    per_ip_daily_limit: int = 0  # 하루 IP당 분석 횟수 상한 (0 = 제한 없음)
+    max_repo_size_mb: int = 500  # 이보다 큰 레포는 클론하지 않는다
+    max_commits: int = 400  # 분석할 커밋이 이보다 많으면 기간을 좁혀 달라고 한다
 
     # LLM 비용 제한용 diff 길이 상한 (문자 수)
     # 24000자 ≈ 8천 토큰 정도. 커밋 40개 레포 전체 요약에 입력 약 30만 토큰 이내

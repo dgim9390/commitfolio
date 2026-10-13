@@ -61,13 +61,16 @@ class JobStore:
         # 동시에 너무 많이 돌면 GitHub·Gemini 한도를 금방 쓰므로 작업 수를 제한한다
         self._pool = ThreadPoolExecutor(max_workers=max_workers)
 
-    def submit(self, req: AnalyzeRequest) -> Job:
+    def find_running(self, req: AnalyzeRequest) -> Job | None:
+        """같은 요청이 이미 진행 중이면 그 작업 (중복 클릭 방지)."""
         with self._lock:
-            # 같은 요청이 이미 진행 중이면 새로 만들지 않고 그 작업을 돌려준다 (중복 클릭 방지)
-            for job in self._jobs.values():
-                if job.request == req and job.status in ("queued", "running"):
-                    return job
-            job = Job(id=uuid.uuid4().hex[:12], request=req)
+            return next((j for j in self._jobs.values() if j.request == req and j.status in ("queued", "running")), None)
+
+    def submit(self, req: AnalyzeRequest) -> Job:
+        if existing := self.find_running(req):
+            return existing
+        job = Job(id=uuid.uuid4().hex[:12], request=req)
+        with self._lock:
             self._jobs[job.id] = job
         self._pool.submit(self._run, job)
         return job
