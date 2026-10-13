@@ -1,4 +1,4 @@
-import type { AnalyzeRequest, Job } from './types'
+import type { AnalyzeRequest, Job, Outputs } from './types'
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   let res: Response
@@ -26,4 +26,18 @@ export function startAnalysis(req: AnalyzeRequest): Promise<{ job_id: string }> 
 
 export function getJob(jobId: string): Promise<Job> {
   return request(`/api/jobs/${jobId}`)
+}
+
+/** 직접 고친 결과 저장 */
+export function saveOutputs(jobId: string, outputs: Outputs): Promise<Job> {
+  return request(`/api/jobs/${jobId}/outputs`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(outputs),
+  })
+}
+
+/** 직접 고친 내용을 버리고 AI 원본으로 */
+export function resetOutputs(jobId: string): Promise<Job> {
+  return request(`/api/jobs/${jobId}/outputs`, { method: 'DELETE' })
 }

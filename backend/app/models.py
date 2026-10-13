@@ -166,6 +166,7 @@ class Statement(BaseModel):
     evidence: list[str]  # 커밋 SHA (화면에서 커밋 링크로 표시)
     from_readme: bool = False  # README·레포 설명이 근거인 문장 (프로젝트 소개 등)
     warnings: list[str] = Field(default_factory=list)  # 검증에서 발견한 문제 (예: 근거 없는 수치)
+    edited: bool = False  # 사용자가 직접 고치거나 추가한 문장 (AI가 근거로 확인한 문장과 구분)
 
 
 class Contribution(BaseModel):

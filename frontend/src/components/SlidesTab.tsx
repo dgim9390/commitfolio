@@ -6,9 +6,11 @@ import type { AnalysisResult } from '../types'
 import { CopyButton } from './CopyButton'
 import { Evidence } from './Evidence'
 import { DownloadIcon, ExpandIcon } from './icons'
+import type { Edit } from './ResultView'
 import { SlideCard, type DeckMeta } from './SlideCard'
+import { SlideEditor } from './SlideEditor'
 
-export function SlidesTab({ result }: { result: AnalysisResult }) {
+export function SlidesTab({ result, edit }: { result: AnalysisResult; edit: Edit | null }) {
   const slides = result.outputs.slides
   // 주소창 ?slide=4 로 특정 장을 바로 열 수 있다 (링크 공유용)
   const [current, setCurrentState] = useState(() => {
@@ -26,14 +28,16 @@ export function SlidesTab({ result }: { result: AnalysisResult }) {
     })
   }
   const stage = useRef<HTMLDivElement>(null)
-  const slide = slides[current]
+  // 편집 중에 장을 지우면 current가 범위를 넘을 수 있어 마지막 장으로 맞춘다
+  const slide = slides[Math.min(current, slides.length - 1)]
   const m = projectMeta(result)
   const meta: DeckMeta = { repoName: result.repo.name, owner: result.repo.owner, period: m.period, commits: m.commits, works: m.works }
 
   // ← → (와 스페이스) 키로 넘기기. 입력창에 포커스가 있을 때는 무시
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      const t = e.target
+      if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement) return
       if (e.key === 'ArrowRight' || e.key === ' ') {
         e.preventDefault()
         setCurrent((c) => Math.min(c + 1, slides.length - 1))
@@ -95,6 +99,9 @@ export function SlidesTab({ result }: { result: AnalysisResult }) {
         ))}
       </div>
 
+      {edit ? (
+        <SlideEditor slide={slide} index={Math.min(current, slides.length - 1)} total={slides.length} edit={edit} onMove={(to) => setCurrent(() => to)} />
+      ) : (
       <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
         <p className="text-xs font-semibold tracking-wide text-slate-500">발표자 메모</p>
         <p className="mt-1.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">{slide.notes}</p>
@@ -114,6 +121,7 @@ export function SlidesTab({ result }: { result: AnalysisResult }) {
           </details>
         )}
       </div>
+      )}
 
       {/* 인쇄용: 모든 장을 페이지마다 하나씩. 앱 화면(no-print) 바깥에 둬야 인쇄 때 보인다 */}
       {createPortal(

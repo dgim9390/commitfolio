@@ -5,6 +5,7 @@ export interface Statement {
   evidence: string[] // 커밋 SHA
   from_readme: boolean
   warnings: string[]
+  edited?: boolean // 사용자가 직접 고치거나 추가한 문장
 }
 
 export interface SlidePoint extends Statement {
@@ -44,6 +45,11 @@ export interface Portfolio {
   tech_stack: { category: string; items: string[] }[]
 }
 
+export interface Outputs {
+  portfolio: Portfolio
+  slides: Slide[]
+}
+
 export interface CommitRef {
   sha: string
   url: string
@@ -67,7 +73,7 @@ export interface AnalysisResult {
   commits: CommitRef[]
   grouping: { groups: { id: number }[]; excluded: { sha: string; reason: string }[] }
   summaries: GroupSummary[]
-  outputs: { portfolio: Portfolio; slides: Slide[] }
+  outputs: Outputs
   validation_notes: string[]
   usage: { model: string; calls: number; cached_calls: number }
 }
@@ -82,6 +88,8 @@ export interface Job {
   message: string
   error: string | null
   result: AnalysisResult | null
+  edited_outputs: Outputs | null // 사용자가 직접 고친 결과 (없으면 result.outputs가 AI 원본)
+  edited_at: string | null
 }
 
 export interface AnalyzeRequest {

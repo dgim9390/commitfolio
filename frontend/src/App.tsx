@@ -98,7 +98,7 @@ export default function App() {
           )}
         </div>
 
-        {job?.status === 'done' && job.result && <ResultView result={job.result} />}
+        {job?.status === 'done' && job.result && <ResultView job={job} onJobChange={setJob} />}
       </main>
     </div>
   )

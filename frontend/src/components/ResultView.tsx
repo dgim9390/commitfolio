@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { resetOutputs, saveOutputs } from '../api'
+import { cleanOutputs } from '../edit'
 import { projectMeta } from '../meta'
-import type { AnalysisResult } from '../types'
+import type { AnalysisResult, Job, Outputs } from '../types'
 import { GitHubIcon } from './icons'
 import { NotesTab } from './NotesTab'
 import { PortfolioTab } from './PortfolioTab'
@@ -15,7 +17,57 @@ type TabKey = (typeof TABS)[number]['key']
 
 const LANG_COLORS = ['bg-indigo-500', 'bg-violet-400', 'bg-sky-400', 'bg-slate-300']
 
-export function ResultView({ result }: { result: AnalysisResult }) {
+export type Edit = (change: (draft: Outputs) => void) => void
+
+export function ResultView({ job, onJobChange }: { job: Job; onJobChange: (job: Job) => void }) {
+  const original = job.result as AnalysisResult
+  // 화면에 보이는 결과: 편집 중이면 초안, 저장된 수정본이 있으면 그것, 없으면 AI 원본
+  const [draft, setDraft] = useState<Outputs | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const editing = draft !== null
+  const outputs = draft ?? job.edited_outputs ?? original.outputs
+  const result: AnalysisResult = { ...original, outputs }
+
+  // 초안을 직접 고치는 것처럼 쓰되, 실제로는 복사본을 바꿔 React가 변경을 알아채게 한다
+  const edit: Edit = (change) =>
+    setDraft((d) => {
+      const next = structuredClone(d ?? outputs)
+      change(next)
+      return next
+    })
+
+  async function save() {
+    if (!draft) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      onJobChange(await saveOutputs(job.id, cleanOutputs(draft)))
+      setDraft(null)
+    } catch (e) {
+      setSaveError((e as Error).message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function resetToOriginal() {
+    if (!window.confirm('직접 고친 내용을 모두 지우고 AI가 만든 원본으로 되돌릴까요?')) return
+    try {
+      onJobChange(await resetOutputs(job.id))
+    } catch (e) {
+      setSaveError((e as Error).message)
+    }
+  }
+
+  // 저장하지 않은 수정이 있으면 페이지를 떠나기 전에 브라우저가 한 번 묻는다
+  useEffect(() => {
+    if (!editing) return
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [editing])
+
   const [tab, setTabState] = useState<TabKey>(() => {
     const fromUrl = new URLSearchParams(window.location.search).get('tab')
     return TABS.some((t) => t.key === fromUrl) ? (fromUrl as TabKey) : 'portfolio'
@@ -79,7 +131,21 @@ export function ResultView({ result }: { result: AnalysisResult }) {
           </div>
         )}
 
-        <nav className="mt-5 -mb-px flex gap-1 overflow-x-auto" role="tablist">
+        <EditBar
+          editing={editing}
+          saving={saving}
+          editedAt={job.edited_at}
+          error={saveError}
+          onStart={() => setDraft(structuredClone(outputs))}
+          onSave={save}
+          onCancel={() => {
+            setDraft(null)
+            setSaveError(null)
+          }}
+          onReset={resetToOriginal}
+        />
+
+        <nav className="mt-4 -mb-px flex gap-1 overflow-x-auto" role="tablist">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -99,10 +165,63 @@ export function ResultView({ result }: { result: AnalysisResult }) {
       </div>
 
       <div className="p-5 sm:p-8">
-        {tab === 'portfolio' && <PortfolioTab result={result} />}
-        {tab === 'slides' && <SlidesTab result={result} />}
+        {tab === 'portfolio' && <PortfolioTab result={result} edit={editing ? edit : null} />}
+        {tab === 'slides' && <SlidesTab result={result} edit={editing ? edit : null} />}
         {tab === 'notes' && <NotesTab result={result} />}
       </div>
     </section>
+  )
+}
+
+function EditBar(props: {
+  editing: boolean
+  saving: boolean
+  editedAt: string | null
+  error: string | null
+  onStart: () => void
+  onSave: () => void
+  onCancel: () => void
+  onReset: () => void
+}) {
+  const { editing, saving, editedAt, error } = props
+  const btn = 'rounded-lg px-3 py-1.5 text-xs font-semibold transition'
+  return (
+    <div
+      className={`mt-5 flex flex-wrap items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 text-xs ${
+        editing ? 'bg-indigo-600 text-white' : 'bg-white/70 ring-1 ring-slate-200/70 dark:bg-slate-900/60 dark:ring-slate-800'
+      }`}
+    >
+      <p className={editing ? '' : 'text-slate-500'}>
+        {editing
+          ? '수정 중 · 점선 칸을 고치세요. 고친 문장에는 "직접 수정" 표시가 붙습니다.'
+          : editedAt
+            ? `직접 수정한 결과입니다 (${new Date(editedAt).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })})`
+            : 'AI가 만든 결과입니다. 마음에 안 들거나 사실과 다른 부분은 직접 고칠 수 있습니다.'}
+        {error && <span className="ml-2 font-semibold text-red-500">저장 실패: {error}</span>}
+      </p>
+      <div className="flex gap-1.5">
+        {editing ? (
+          <>
+            <button onClick={props.onCancel} className={`${btn} bg-white/15 hover:bg-white/25`}>
+              취소
+            </button>
+            <button onClick={props.onSave} disabled={saving} className={`${btn} bg-white text-indigo-700 hover:bg-indigo-50 disabled:opacity-60`}>
+              {saving ? '저장 중…' : '저장'}
+            </button>
+          </>
+        ) : (
+          <>
+            {editedAt && (
+              <button onClick={props.onReset} className={`${btn} text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800`}>
+                AI 원본으로 되돌리기
+              </button>
+            )}
+            <button onClick={props.onStart} className={`${btn} bg-slate-900 text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900`}>
+              수정하기
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   )
 }
