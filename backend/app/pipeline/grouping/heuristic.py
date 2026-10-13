@@ -28,6 +28,7 @@ from pathlib import PurePosixPath
 from app.models import Commit, ExcludedCommit, GroupingResult, GroupLink, WorkGroup
 from app.pipeline.grouping.base import UnionFind
 from app.pipeline.grouping.rules import exclusion_reason, is_doc_file, message_label
+from app.pipeline.text import strip_trailers
 
 
 @dataclass
@@ -248,8 +249,6 @@ def path_features(c: Commit) -> set[str]:
 
 
 _TOKEN = re.compile(r"\d+[a-z]+|[a-z][a-z0-9+#]*|[가-힣]+")
-# 커밋 끝의 서명 줄 (Co-Authored-By:, Signed-off-by: 등) → 작업 내용과 무관
-_TRAILER = re.compile(r"^[A-Za-z-]+-by:.*$", re.MULTILINE | re.IGNORECASE)
 # 어떤 작업에나 붙는 단어라 '같은 작업' 판단에 도움이 안 됨
 _STOPWORDS = {
     "fix", "fixed", "update", "updated", "add", "added", "remove", "change", "refactor", "chore",
@@ -265,7 +264,7 @@ def message_tokens(message: str) -> set[str]:
     한국어는 '화면을/화면으로/화면'처럼 조사·어미가 붙어 단어가 계속 바뀌는데,
     bigram이면 형태소 분석기 없이도 '화면'이라는 공통 조각이 겹친다.
     """
-    text = _TRAILER.sub("", message).lower()
+    text = strip_trailers(message).lower()
     tokens: set[str] = set()
     for tok in _TOKEN.findall(text):
         if tok in _STOPWORDS:

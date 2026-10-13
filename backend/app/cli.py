@@ -2,6 +2,7 @@
 
 예) uv run commitfolio collect https://github.com/dgim9390/DeskBoard -u dgim9390
     uv run commitfolio group dgim9390/DeskBoard -u dgim9390 --explain
+    uv run commitfolio generate dgim9390/DeskBoard -u dgim9390
 """
 
 from datetime import date
@@ -9,6 +10,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.table import Table
 
 from app.config import get_settings
@@ -18,6 +20,8 @@ from app.models import CollectResult, GroupingResult
 from app.pipeline.filters import REASON_LABELS
 from app.pipeline.grouping.heuristic import HeuristicConfig, HeuristicGrouper
 from app.pipeline.grouping.rules import EXCLUDE_LABELS
+from app.pipeline.report import render_markdown
+from app.pipeline.runner import analyze
 
 app = typer.Typer(no_args_is_help=True, help="CommitFolio: GitHub 커밋 분석 도구")
 console = Console()
@@ -25,7 +29,7 @@ console = Console()
 
 @app.callback()
 def main() -> None:
-    """서브커맨드 목록을 보여주기 위한 자리 (collect, group, 이후 generate 추가 예정)."""
+    """서브커맨드 목록을 보여주기 위한 자리 (collect, group, generate)."""
 
 
 def _parse_date(value: str | None) -> date | None:
@@ -72,6 +76,40 @@ def group(
     grouping = HeuristicGrouper(config).group(result.commits)
     _print_groups(result, grouping, explain)
     _save(grouping.model_dump_json(indent=2), out, result, "groups")
+
+
+@app.command()
+def generate(
+    repo_url: str = typer.Argument(..., help="공개 레포 URL 또는 owner/repo"),
+    user: str = typer.Option(..., "--user", "-u", help="분석할 GitHub 아이디"),
+    since: str | None = typer.Option(None, help="시작일 YYYY-MM-DD"),
+    until: str | None = typer.Option(None, help="종료일 YYYY-MM-DD"),
+    out: Path | None = typer.Option(None, help="결과 JSON 저장 경로"),
+) -> None:
+    """수집 → 그룹화 → LLM 요약 → 포트폴리오 소개글·발표 자료 생성 → 근거 검증."""
+    settings = get_settings()
+    try:
+        with console.status("시작하는 중...") as status:
+            result = analyze(
+                repo_url,
+                user,
+                _parse_date(since),
+                _parse_date(until),
+                settings,
+                progress=lambda stage, msg: status.update(f"[{stage}] {msg}"),
+            )
+    except CommitFolioError as e:
+        console.print(f"[bold red]오류:[/] {e}")
+        raise typer.Exit(1) from None
+
+    markdown = render_markdown(result)
+    console.print(Markdown(markdown))
+    base = out or settings.cache_dir / "results" / f"{result.repo.owner}__{result.repo.name}__{user}.analysis.json"
+    base.parent.mkdir(parents=True, exist_ok=True)
+    base.write_text(result.model_dump_json(indent=2), encoding="utf-8")
+    md_path = base.with_suffix(".md")
+    md_path.write_text(markdown, encoding="utf-8")
+    console.print(f"\n결과 저장: [cyan]{base}[/]\n마크다운: [cyan]{md_path}[/]")
 
 
 def _collect_or_exit(repo_url: str, user: str, since: str | None, until: str | None) -> CollectResult:

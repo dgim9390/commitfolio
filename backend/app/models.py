@@ -131,3 +131,84 @@ class CollectResult(BaseModel):
     pull_requests: list[PullRequest]
     stats: CollectStats
     collected_at: datetime
+
+
+# ----------------------------------------------------------------------
+# 4단계: 요약·생성 결과
+# ----------------------------------------------------------------------
+
+
+class Fact(BaseModel):
+    """수치나 구체적 사실. 원문 인용(quote)이 있어야 문장에 쓸 수 있다."""
+
+    statement: str
+    evidence: str  # 커밋 SHA
+    quote: str  # 커밋 메시지나 diff에서 그대로 옮긴 부분
+
+
+class GroupSummary(BaseModel):
+    group_id: int
+    title: str
+    problem: str  # 어떤 문제/필요가 있었는지
+    solution: str  # 어떻게 해결했는지
+    technologies: list[str]
+    significance: Literal["major", "minor"]
+    evidence: list[str]  # 커밋 SHA
+    facts: list[Fact] = Field(default_factory=list)
+
+
+class Statement(BaseModel):
+    """결과 문장 하나 + 근거."""
+
+    text: str
+    evidence: list[str]  # 커밋 SHA (화면에서 커밋 링크로 표시)
+    from_readme: bool = False  # README·레포 설명이 근거인 문장 (프로젝트 소개 등)
+    warnings: list[str] = Field(default_factory=list)  # 검증에서 발견한 문제 (예: 근거 없는 수치)
+
+
+class Portfolio(BaseModel):
+    overview: str
+    contributions: list[Statement]
+    tech_stack: list[str]
+
+
+class Slide(BaseModel):
+    title: str
+    bullets: list[Statement]
+    notes: str  # 발표자 메모 (말로 덧붙일 내용)
+
+
+class Outputs(BaseModel):
+    portfolio: Portfolio
+    slides: list[Slide]
+
+
+class LLMUsage(BaseModel):
+    model: str
+    calls: int = 0  # 실제 API 호출 수
+    cached_calls: int = 0  # 로컬 캐시로 대신한 호출 수
+    input_tokens: int = 0
+    output_tokens: int = 0
+    estimated_cost_usd: float | None = None  # 모델 단가를 알 때만
+
+
+class CommitRef(BaseModel):
+    """화면 표시용 커밋 요약 (diff 제외)."""
+
+    sha: str
+    url: str
+    title: str
+    authored_at: datetime
+
+
+class AnalysisResult(BaseModel):
+    repo: RepoInfo
+    username: str
+    since: date | None
+    until: date | None
+    commits: list[CommitRef]
+    grouping: GroupingResult
+    summaries: list[GroupSummary]
+    outputs: Outputs
+    validation_notes: list[str]  # 검증에서 빼거나 고친 내용
+    usage: LLMUsage

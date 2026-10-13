@@ -59,3 +59,7 @@ class GitHubApiError(CommitFolioError):
 class GitError(CommitFolioError):
     def __init__(self, message: str):
         super().__init__(f"git 명령 실행 실패: {message}")
+
+
+class LLMError(CommitFolioError):
+    """Claude API 호출 실패 (키 없음, 한도 초과, 거절 등)."""
