@@ -8,9 +8,6 @@ import { ArrowRightIcon, CheckIcon } from './icons'
 export interface DeckMeta {
   repoName: string
   owner: string
-  period: string
-  commits: number
-  works: number
 }
 
 const LAYOUT_LABEL: Record<Slide['layout'], string> = {
@@ -62,13 +59,8 @@ function Cover({ slide, meta }: { slide: Slide; meta: DeckMeta }) {
         <h1 className="text-[6.2cqw] leading-none font-extrabold tracking-tight">{slide.title}</h1>
         <p className="mt-[2.2%] max-w-[75%] text-[2.2cqw] leading-snug text-indigo-100">{slide.headline}</p>
       </div>
-      <div className="relative flex flex-wrap gap-[1.2%] text-[1.15cqw]">
-        {[meta.period, `커밋 ${meta.commits}개`, `작업 ${meta.works}개`].filter(Boolean).map((t) => (
-          <span key={t} className="rounded-full bg-white/12 px-[1.4%] py-[0.5%] ring-1 ring-white/20 backdrop-blur">
-            {t}
-          </span>
-        ))}
-      </div>
+      {/* 분석 기간·커밋 수 같은 도구 쪽 정보는 발표에 필요 없어서 넣지 않는다. 아래 여백만 맞춘다 */}
+      <div className="relative h-[1.2cqw]" />
     </div>
   )
 }

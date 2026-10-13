@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { slidesMarkdown, slideText } from '../format'
-import { projectMeta } from '../meta'
 import type { AnalysisResult } from '../types'
 import { CopyButton } from './CopyButton'
 import { Evidence } from './Evidence'
@@ -30,8 +29,7 @@ export function SlidesTab({ result, edit }: { result: AnalysisResult; edit: Edit
   const stage = useRef<HTMLDivElement>(null)
   // 편집 중에 장을 지우면 current가 범위를 넘을 수 있어 마지막 장으로 맞춘다
   const slide = slides[Math.min(current, slides.length - 1)]
-  const m = projectMeta(result)
-  const meta: DeckMeta = { repoName: result.repo.name, owner: result.repo.owner, period: m.period, commits: m.commits, works: m.works }
+  const meta: DeckMeta = { repoName: result.repo.name, owner: result.repo.owner }
 
   // ← → (와 스페이스) 키로 넘기기. 입력창에 포커스가 있을 때는 무시
   useEffect(() => {

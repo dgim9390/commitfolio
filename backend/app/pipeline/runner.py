@@ -54,7 +54,8 @@ def analyze(
         outputs = Outputs(portfolio=Portfolio(tagline="", overview="", contributions=[], tech_stack=[]), slides=[])
         notes.append("분석할 커밋이 없어 결과를 만들지 않았습니다.")
     else:
-        outputs = validate_outputs(raw, analyzed, index, collected.repo, notes)
+        groups = [g.commit_shas for g in grouping.groups]
+        outputs = validate_outputs(raw, analyzed, index, collected.repo, notes, groups)
 
     return AnalysisResult(
         repo=collected.repo,

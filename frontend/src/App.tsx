@@ -12,7 +12,7 @@ function jobFromUrl(): string | null {
   return new URLSearchParams(window.location.search).get('job')
 }
 
-const FEATURES = ['모든 문장에 근거 커밋 링크', '근거 없는 수치는 경고', '발표 자료 PDF 저장']
+const FEATURES = ['모든 문장에 근거 커밋 링크', '근거 없는 수치는 제외', '직접 수정 가능', '발표 자료 PDF 저장']
 
 export default function App() {
   const [jobId, setJobId] = useState<string | null>(jobFromUrl)

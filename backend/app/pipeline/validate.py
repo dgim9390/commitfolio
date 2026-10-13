@@ -4,6 +4,7 @@
 - 근거 커밋 ID가 실제로 있는지 (없는 ID는 빼고, 근거가 하나도 안 남은 문장은 버린다)
 - "README" 근거는 README나 레포 설명이 실제로 있을 때만 인정
 - 문장 속 숫자가 근거(커밋 메시지·diff, README)에 실제로 나오는지 (안 나오면 그 문장을 뺀다)
+- 근거 커밋이 문장 내용과 맞는지 (relevance.py: 안 맞는 근거는 빼거나 더 맞는 커밋으로 고친다)
 """
 
 import re
@@ -21,6 +22,7 @@ from app.models import (
     TechGroup,
 )
 from app.pipeline.generate import LLMOutputs
+from app.pipeline.relevance import RelevanceIndex
 from app.pipeline.summarize import commit_source_text
 from app.pipeline.text import CommitIndex
 
@@ -64,8 +66,10 @@ def validate_outputs(
     index: CommitIndex,
     repo: RepoInfo,
     notes: list[str],
+    groups: list[list[str]] | None = None,
 ) -> Outputs:
     sources = {c.sha: commit_source_text(c) for c in commits}
+    relevance = RelevanceIndex(commits, groups)
     readme_text = "\n".join(filter(None, [repo.readme, repo.description, repo.name]))
     everything = list(sources.values()) + [readme_text]
 
@@ -95,12 +99,17 @@ def validate_outputs(
         if not shas and not from_readme:
             notes.append(f"{where}: 근거가 없어 문장을 뺐습니다 → {text}")
             return None
+        # 숫자는 AI가 처음 단 근거로 확인한다. 근거를 고친 뒤에 확인하면 잘못된 근거에 기대
+        # 쓴 문장이 다른 커밋의 숫자로 통과될 수 있어서다.
         missing = unverified_numbers(text, evidence_text(shas, from_readme))
         if missing:
             # 근거와 맞지 않는 숫자가 든 문장은 경고만 붙이지 않고 뺀다 (지어낸 수치일 수 있으므로)
             notes.append(f"{where}: 숫자 {', '.join(missing)}이(가) 근거 커밋에서 확인되지 않아 문장을 뺐습니다 → {text}")
             return None
-        return Statement(text=text, evidence=shas, from_readme=from_readme)
+        check = relevance.check_evidence(text, shas)
+        notes.extend(f"{where}: {n} → {text}" for n in check.notes)
+        warnings = [check.warning] if check.warning else []
+        return Statement(text=text, evidence=check.evidence, from_readme=from_readme, warnings=warnings)
 
     def check_free_text(text: str, where: str) -> None:
         """근거가 따로 없는 글(개요, 발표자 메모 등)은 레포 전체에서 숫자를 찾는다."""

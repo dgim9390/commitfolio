@@ -209,7 +209,8 @@ def test_validate_outputs():
     assert [s.title for s in out.slides] == ["데스크보드", "3D", "목차"]  # 근거가 다 빠진 장은 삭제, 표지는 유지
     feature = out.slides[1]
     assert feature.points[0].heading == "장면" and feature.points[0].text == "three.js 장면"
-    assert feature.points[0].evidence == [COMMITS[2].sha, COMMITS[0].sha]
+    # 'three.js 장면'과 상관없는 카탈로그 커밋(C01)은 근거 일치도 검사에서 빠진다
+    assert feature.points[0].evidence == [COMMITS[2].sha]
     assert [h.value for h in feature.highlights] == ["19종"]
     assert any("3배" in n for n in notes)
     assert any("발표자 메모" in n for n in notes)  # "2주" 근거 없음
