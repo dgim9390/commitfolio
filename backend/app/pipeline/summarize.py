@@ -38,6 +38,8 @@ class LLMGroupSummary(BaseModel):
     technologies: list[str]
     significance: Literal["major", "minor"]
     evidence: list[str]
+    key_points: list[str]
+    decisions: list[str]
     facts: list[LLMFact]
 
 
@@ -200,5 +202,7 @@ def _to_summary(raw: LLMGroupSummary, group: WorkGroup, commits: list[Commit], i
         technologies=raw.technologies,
         significance=raw.significance,
         evidence=evidence,
+        key_points=raw.key_points,
+        decisions=raw.decisions,
         facts=facts,
     )

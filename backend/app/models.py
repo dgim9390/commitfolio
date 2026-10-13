@@ -154,6 +154,8 @@ class GroupSummary(BaseModel):
     technologies: list[str]
     significance: Literal["major", "minor"]
     evidence: list[str]  # 커밋 SHA
+    key_points: list[str] = Field(default_factory=list)  # 구체적인 구현 포인트
+    decisions: list[str] = Field(default_factory=list)  # 코드에서 확인되는 설계 판단과 이유
     facts: list[Fact] = Field(default_factory=list)
 
 
@@ -166,16 +168,51 @@ class Statement(BaseModel):
     warnings: list[str] = Field(default_factory=list)  # 검증에서 발견한 문제 (예: 근거 없는 수치)
 
 
+class Contribution(BaseModel):
+    """포트폴리오의 주요 기여 하나: 제목 → 한 줄 요약 → 구체 포인트 → 기술 태그."""
+
+    title: str
+    summary: Statement
+    points: list[Statement]
+    technologies: list[str]
+
+
+class TechGroup(BaseModel):
+    category: str  # 예: "Frontend", "3D·그래픽"
+    items: list[str]
+
+
 class Portfolio(BaseModel):
+    tagline: str  # 한 줄 소개
     overview: str
-    contributions: list[Statement]
-    tech_stack: list[str]
+    contributions: list[Contribution]
+    tech_stack: list[TechGroup]
+
+
+class SlidePoint(Statement):
+    heading: str  # 굵게 보이는 짧은 키워드
+
+
+class Highlight(BaseModel):
+    """슬라이드의 큰 숫자 카드. 근거에서 확인된 수치만 남긴다."""
+
+    value: str  # 예: "19종", "50단계"
+    label: str
+    evidence: list[str]
+    from_readme: bool = False
+
+
+SlideLayout = Literal["cover", "agenda", "problem", "feature", "architecture", "tech", "summary"]
 
 
 class Slide(BaseModel):
+    layout: SlideLayout
     title: str
-    bullets: list[Statement]
-    notes: str  # 발표자 메모 (말로 덧붙일 내용)
+    headline: str  # 이 장의 핵심 메시지 한 문장
+    points: list[SlidePoint]
+    highlights: list[Highlight] = Field(default_factory=list)
+    flow: list[str] = Field(default_factory=list)  # architecture: 처리 흐름 단계
+    notes: str  # 발표자 메모
 
 
 class Outputs(BaseModel):

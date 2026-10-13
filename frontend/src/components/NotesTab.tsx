@@ -12,14 +12,14 @@ export function NotesTab({ result }: { result: AnalysisResult }) {
   return (
     <div className="space-y-6 text-sm">
       <section>
-        <h3 className="mb-2 font-semibold text-zinc-500">작업 그룹 ({result.summaries.length}개)</h3>
+        <h3 className="mb-2 font-semibold text-slate-500">작업 그룹 ({result.summaries.length}개)</h3>
         <ul className="space-y-2">
           {result.summaries.map((s) => (
             <li key={s.group_id}>
               <span className="font-medium">{s.title}</span>{' '}
-              <span className={`text-xs ${s.significance === 'major' ? 'text-indigo-600' : 'text-zinc-400'}`}>{s.significance}</span>
-              <span className="text-zinc-400"> · 커밋 {s.evidence.length}개</span>
-              <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">{s.solution}</p>
+              <span className={`text-xs ${s.significance === 'major' ? 'text-indigo-600' : 'text-slate-400'}`}>{s.significance}</span>
+              <span className="text-slate-400"> · 커밋 {s.evidence.length}개</span>
+              <p className="mt-0.5 text-slate-600 dark:text-slate-400">{s.solution}</p>
             </li>
           ))}
         </ul>
@@ -27,16 +27,16 @@ export function NotesTab({ result }: { result: AnalysisResult }) {
 
       {result.grouping.excluded.length > 0 && (
         <section>
-          <h3 className="mb-2 font-semibold text-zinc-500">분석에서 뺀 커밋</h3>
+          <h3 className="mb-2 font-semibold text-slate-500">분석에서 뺀 커밋</h3>
           <ul className="space-y-1">
             {result.grouping.excluded.map((e) => {
               const c = commits.get(e.sha)
               return (
-                <li key={e.sha} className="text-zinc-600 dark:text-zinc-400">
+                <li key={e.sha} className="text-slate-600 dark:text-slate-400">
                   <a href={c?.url} target="_blank" rel="noreferrer" className="font-mono text-xs hover:underline">
                     {e.sha.slice(0, 7)}
                   </a>{' '}
-                  {c?.title} <span className="text-zinc-400">— {EXCLUDE_LABELS[e.reason] ?? e.reason}</span>
+                  {c?.title} <span className="text-slate-400">— {EXCLUDE_LABELS[e.reason] ?? e.reason}</span>
                 </li>
               )
             })}
@@ -45,11 +45,11 @@ export function NotesTab({ result }: { result: AnalysisResult }) {
       )}
 
       <section>
-        <h3 className="mb-2 font-semibold text-zinc-500">검증 메모</h3>
+        <h3 className="mb-2 font-semibold text-slate-500">검증 메모</h3>
         {result.validation_notes.length === 0 ? (
-          <p className="text-zinc-400">AI가 쓴 문장에서 문제를 발견하지 못했습니다.</p>
+          <p className="text-slate-400">AI가 쓴 문장에서 문제를 발견하지 못했습니다.</p>
         ) : (
-          <ul className="list-disc space-y-1 pl-5 text-zinc-600 dark:text-zinc-400">
+          <ul className="list-disc space-y-1 pl-5 text-slate-600 dark:text-slate-400">
             {result.validation_notes.map((n, i) => (
               <li key={i}>{n}</li>
             ))}

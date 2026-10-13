@@ -7,16 +7,41 @@ export interface Statement {
   warnings: string[]
 }
 
+export interface SlidePoint extends Statement {
+  heading: string
+}
+
+export interface Highlight {
+  value: string
+  label: string
+  evidence: string[]
+  from_readme: boolean
+}
+
+export type SlideLayout = 'cover' | 'agenda' | 'problem' | 'feature' | 'architecture' | 'tech' | 'summary'
+
 export interface Slide {
+  layout: SlideLayout
   title: string
-  bullets: Statement[]
+  headline: string
+  points: SlidePoint[]
+  highlights: Highlight[]
+  flow: string[]
   notes: string
 }
 
+export interface Contribution {
+  title: string
+  summary: Statement
+  points: Statement[]
+  technologies: string[]
+}
+
 export interface Portfolio {
+  tagline: string
   overview: string
-  contributions: Statement[]
-  tech_stack: string[]
+  contributions: Contribution[]
+  tech_stack: { category: string; items: string[] }[]
 }
 
 export interface CommitRef {
@@ -35,7 +60,9 @@ export interface GroupSummary {
 }
 
 export interface AnalysisResult {
-  repo: { owner: string; name: string; url: string; description: string | null }
+  repo: { owner: string; name: string; url: string; description: string | null; languages: Record<string, number>; topics: string[] }
+  since: string | null
+  until: string | null
   username: string
   commits: CommitRef[]
   grouping: { groups: { id: number }[]; excluded: { sha: string; reason: string }[] }
@@ -49,6 +76,7 @@ export type JobStatus = 'queued' | 'running' | 'done' | 'error'
 
 export interface Job {
   id: string
+  request: AnalyzeRequest
   status: JobStatus
   stage: string | null
   message: string

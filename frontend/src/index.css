@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
-:root {
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 body {
-  @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100;
+  @apply bg-slate-50 font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  word-break: keep-all; /* 한국어 단어가 줄 끝에서 쪼개지지 않게 */
 }
 
 /* PDF 저장(인쇄)할 때는 슬라이드만 한 장씩 16:9 페이지로 */
@@ -20,7 +21,8 @@ body {
   }
   body {
     background: white;
-    color: black;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .no-print {
     display: none !important;

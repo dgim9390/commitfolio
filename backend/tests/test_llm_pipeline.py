@@ -17,7 +17,17 @@ from app.models import (
     RepoInfo,
     WorkGroup,
 )
-from app.pipeline.generate import LLMOutputs, LLMPortfolio, LLMSlide, LLMStatement, build_generate_input
+from app.pipeline.generate import (
+    LLMContribution,
+    LLMHighlight,
+    LLMOutputs,
+    LLMPortfolio,
+    LLMSlide,
+    LLMSlidePoint,
+    LLMStatement,
+    LLMTechGroup,
+    build_generate_input,
+)
 from app.pipeline.llm import BaseLLM, LLMCache, make_llm
 from app.pipeline.summarize import LLMFact, LLMGroupSummary, LLMSummaryBatch, _fit_patches, pack_batches, summarize_groups
 from app.pipeline.text import CommitIndex, strip_trailers
@@ -73,7 +83,7 @@ class FakeLLM:
 
 def summary(group_id: int, **kw) -> LLMGroupSummary:
     base = dict(group_id=group_id, title="t", problem="p", solution="s", technologies=[], significance="major",
-                evidence=[], facts=[])
+                evidence=[], key_points=[], decisions=[], facts=[])
     return LLMGroupSummary(**{**base, **kw})
 
 
@@ -134,6 +144,10 @@ def test_unverified_numbers():
     assert unverified_numbers("사용자 1,000명", ["users = 1000"]) == []
     # "3D"의 3은 이름의 일부: 텍스트 쪽에서도, 근거 쪽에서도 수치로 치지 않는다
     assert unverified_numbers("3D 보기 구현", []) == []
+    assert unverified_numbers("3차원 좌표로 이동", []) == []
+    assert unverified_numbers("사설 IP(192.168.x) 차단", [r"/^192\.168\./.test(ip)"]) == []
+    assert unverified_numbers("사설 IP(192.168.x) 차단", ["a === 192 && b === 168"]) == []  # 조각으로 나뉜 경우
+    assert unverified_numbers("2.5배 빨라짐", ["x = 2; y = 5"]) == ["2.5"]  # 한 자리 조각은 인정 안 함
     assert unverified_numbers("SHA-256 해시로 16자리 지문", ["createHash('sha256') ... slice(0, 16)"]) == []
     assert unverified_numbers("3명이 사용", ["3D 보기", "v1.3"]) == ["3"]
 
@@ -145,36 +159,61 @@ def test_generate_input_contains_readme_and_ids():
     assert "데스크보드" in text and "커밋: C01" in text
 
 
+def st(text: str, *refs: str) -> LLMStatement:
+    return LLMStatement(text=text, evidence=list(refs))
+
+
+def slide(layout, title, points=(), highlights=(), notes="", headline="h") -> LLMSlide:
+    return LLMSlide(layout=layout, title=title, headline=headline, points=list(points), highlights=list(highlights),
+                    flow=[], notes=notes)
+
+
 def test_validate_outputs():
     raw = LLMOutputs(
         portfolio=LLMPortfolio(
+            tagline="데스크 시뮬레이터",
             overview="100명이 쓰는 앱",  # README·커밋에 없는 숫자
             contributions=[
-                LLMStatement(text="제품 19종 카탈로그 구현", evidence=["C01"]),
-                LLMStatement(text="성능 40% 개선", evidence=["C02"]),  # 근거에 없는 숫자 → 경고
-                LLMStatement(text="근거 없는 문장", evidence=["C42"]),  # 없는 ID → 문장 삭제
+                LLMContribution(title="카탈로그", summary=st("제품 19종 카탈로그 구현", "C01"),
+                                points=[st("재시도 5회로 변경", "C02"), st("성능 40% 개선", "C02"), st("근거 없는 문장", "C42")],
+                                technologies=["TS"]),
+                # 요약 문장 근거가 없으면 첫 포인트가 요약으로 올라간다
+                LLMContribution(title="3D", summary=st("요약", "C99"), points=[st("three.js 장면", "C03")], technologies=[]),
+                LLMContribution(title="가짜", summary=st("없음", "C55"), points=[], technologies=[]),
             ],
-            tech_stack=["TypeScript"],
+            tech_stack=[LLMTechGroup(category="Frontend", items=["TypeScript"]), LLMTechGroup(category="빈 분야", items=[])],
         ),
         slides=[
-            LLMSlide(title="데스크보드", bullets=[LLMStatement(text="제품 사진으로 책상을 꾸미는 앱", evidence=["README"])], notes=""),
-            LLMSlide(title="3D", bullets=[LLMStatement(text="three.js 장면", evidence=["C03", "C01"])], notes="2주 걸렸다"),
-            LLMSlide(title="가짜", bullets=[LLMStatement(text="없음", evidence=["C55"])], notes=""),
+            slide("cover", "데스크보드"),
+            slide("feature", "3D", points=[LLMSlidePoint(heading="장면", text="three.js 장면", evidence=["C03", "C01"])],
+                  highlights=[LLMHighlight(value="19종", label="제품", evidence=["C01"]),
+                              LLMHighlight(value="3배", label="속도", evidence=["C03"])],  # 근거 없는 수치 카드
+                  notes="2주 걸렸다"),
+            slide("feature", "가짜", points=[LLMSlidePoint(heading="x", text="없음", evidence=["C55"])]),
+            slide("agenda", "목차", points=[LLMSlidePoint(heading="소개", text="프로젝트 소개", evidence=["README"])]),
         ],
     )
     notes: list[str] = []
     out = validate_outputs(raw, COMMITS, INDEX, REPO, notes)
+    p = out.portfolio
 
-    assert [c.text for c in out.portfolio.contributions] == ["제품 19종 카탈로그 구현", "성능 40% 개선"]
-    assert out.portfolio.contributions[0].warnings == []
-    assert "40" in out.portfolio.contributions[1].warnings[0]
+    assert [c.title for c in p.contributions] == ["카탈로그", "3D"]
+    catalog, three = p.contributions
+    # 근거에 없는 숫자(40%)가 든 문장과 근거 커밋이 없는 문장은 빠진다
+    assert [pt.text for pt in catalog.points] == ["재시도 5회로 변경"]
+    assert any("40" in n and "문장을 뺐습니다" in n for n in notes)
+    assert three.summary.text == "three.js 장면" and three.points == []
+    assert [g.category for g in p.tech_stack] == ["Frontend"]
     assert any("포트폴리오 개요" in n for n in notes)
 
-    assert [s.title for s in out.slides] == ["데스크보드", "3D"]  # 근거가 다 빠진 장은 삭제
-    cover = out.slides[0].bullets[0]
-    assert cover.from_readme and cover.evidence == []
-    assert out.slides[1].bullets[0].evidence == [COMMITS[2].sha, COMMITS[0].sha]
+    assert [s.title for s in out.slides] == ["데스크보드", "3D", "목차"]  # 근거가 다 빠진 장은 삭제, 표지는 유지
+    feature = out.slides[1]
+    assert feature.points[0].heading == "장면" and feature.points[0].text == "three.js 장면"
+    assert feature.points[0].evidence == [COMMITS[2].sha, COMMITS[0].sha]
+    assert [h.value for h in feature.highlights] == ["19종"]
+    assert any("3배" in n for n in notes)
     assert any("발표자 메모" in n for n in notes)  # "2주" 근거 없음
+    assert out.slides[2].points[0].from_readme
 
 
 def test_llm_cache_and_provider_selection(tmp_path):
@@ -185,7 +224,7 @@ def test_llm_cache_and_provider_selection(tmp_path):
 
         def _call(self, system, prompt, schema):
             calls.append(prompt)
-            return schema(portfolio=LLMPortfolio(overview="o", contributions=[], tech_stack=[]), slides=[]), 10, 5
+            return schema(portfolio=LLMPortfolio(tagline="t", overview="o", contributions=[], tech_stack=[]), slides=[]), 10, 5
 
     llm = CountingLLM(Settings(), LLMCache(tmp_path / "llm.sqlite3"))
     first = llm.parse(system="s", prompt="p", schema=LLMOutputs)

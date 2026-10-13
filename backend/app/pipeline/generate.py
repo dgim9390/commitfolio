@@ -8,7 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from app.config import Settings
-from app.models import CollectResult, GroupSummary
+from app.models import CollectResult, GroupSummary, SlideLayout
 from app.pipeline.llm import BaseLLM
 from app.pipeline.summarize import SYSTEM_PROMPT
 from app.pipeline.text import CommitIndex
@@ -21,15 +21,44 @@ class LLMStatement(BaseModel):
     evidence: list[str]  # "C01" 같은 커밋 ID, 또는 "README"
 
 
+class LLMContribution(BaseModel):
+    title: str
+    summary: LLMStatement
+    points: list[LLMStatement]
+    technologies: list[str]
+
+
+class LLMTechGroup(BaseModel):
+    category: str
+    items: list[str]
+
+
 class LLMPortfolio(BaseModel):
+    tagline: str
     overview: str
-    contributions: list[LLMStatement]
-    tech_stack: list[str]
+    contributions: list[LLMContribution]
+    tech_stack: list[LLMTechGroup]
+
+
+class LLMSlidePoint(BaseModel):
+    heading: str
+    text: str
+    evidence: list[str]
+
+
+class LLMHighlight(BaseModel):
+    value: str
+    label: str
+    evidence: list[str]
 
 
 class LLMSlide(BaseModel):
+    layout: SlideLayout
     title: str
-    bullets: list[LLMStatement]
+    headline: str
+    points: list[LLMSlidePoint]
+    highlights: list[LLMHighlight]
+    flow: list[str]
     notes: str
 
 
@@ -63,6 +92,10 @@ def build_generate_input(
         lines.append(f"토픽: {', '.join(repo.topics)}")
     lines.append(f"레포 전체 언어: {', '.join(repo.languages) or '-'}")
     lines.append(f"이 개발자가 바꾼 코드의 언어(많은 순): {', '.join(collected.stats.user_languages) or '-'}")
+    shas = [sha for s in summaries for sha in s.evidence]
+    if shas:
+        days = sorted(by_sha[sha].authored_at.astimezone().date() for sha in shas)
+        lines.append(f"분석한 커밋: {len(shas)}개, 기간 {days[0]} ~ {days[-1]}")
 
     if repo.readme:
         readme = repo.readme[: settings.max_readme_chars]
@@ -79,6 +112,10 @@ def build_generate_input(
             lines.append(f"문제: {s.problem}")
         lines.append(f"해결: {s.solution}")
         lines.append(f"기술: {', '.join(s.technologies) or '-'}")
+        for point in s.key_points:
+            lines.append(f"구현: {point}")
+        for decision in s.decisions:
+            lines.append(f"설계 판단: {decision}")
         for f in s.facts:
             lines.append(f"사실: {f.statement} ({index.id_of(f.evidence)}, 인용: \"{f.quote}\")")
     return "\n".join(lines)

@@ -51,7 +51,7 @@ def analyze(
 
     report("validate", "근거 검증 중")
     if raw is None:
-        outputs = Outputs(portfolio=Portfolio(overview="", contributions=[], tech_stack=[]), slides=[])
+        outputs = Outputs(portfolio=Portfolio(tagline="", overview="", contributions=[], tech_stack=[]), slides=[])
         notes.append("분석할 커밋이 없어 결과를 만들지 않았습니다.")
     else:
         outputs = validate_outputs(raw, analyzed, index, collected.repo, notes)

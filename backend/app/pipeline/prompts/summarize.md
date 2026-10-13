@@ -9,6 +9,8 @@
 - technologies: 이 작업에서 실제로 쓴 라이브러리·API·기술 (diff에 등장한 것만)
 - significance: 사용자에게 보이는 기능이나 구조적 변화면 "major", 설정·문구·이름 변경 같은 잔손질이면 "minor"
 - evidence: 이 요약의 근거가 된 커밋 ID 목록 (그 그룹의 커밋만)
+- key_points: 구체적인 구현 포인트 3~5개. 각각 한 문장. 어떤 컴포넌트·함수·API를 어떻게 만들었는지 (예: "useDeskStore에 past/future 스택을 두어 되돌리기를 구현")
+- decisions: 코드나 메시지에서 **직접 확인되는** 설계 판단과 그 이유 0~3개 (예: "사설 IP로의 요청을 막아 SSRF를 방지", "큰 이미지는 IndexedDB로 옮겨 localStorage 용량 초과를 피함"). 이유를 추측해야 하면 쓰지 마라
 - facts: 수치나 구체적 사실 (예: "제품 19종 추가"). 각각 근거 커밋 ID와, 그 커밋의 메시지나 diff에서 글자 그대로 복사한 인용(quote)을 붙인다. 그대로 인용할 수 없으면 facts에 넣지 마라. 없으면 빈 목록
 
 {{input}}

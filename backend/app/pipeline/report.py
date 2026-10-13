@@ -19,14 +19,24 @@ def render_markdown(r: AnalysisResult) -> str:
     out = [f"# {r.repo.owner}/{r.repo.name} · {r.username} · {period}", ""]
 
     p = r.outputs.portfolio
-    out += ["## 포트폴리오 소개글", "", "### 프로젝트 개요", "", p.overview or "(없음)", "", "### 주요 기여", ""]
-    out += [f"- {evidence(s)}" for s in p.contributions] or ["(없음)"]
-    out += ["", "### 기술 스택", "", ", ".join(p.tech_stack) or "-", ""]
+    out += ["## 포트폴리오 소개글", "", f"**{p.tagline}**", "", p.overview or "(없음)", "", "### 주요 기여", ""]
+    for c in p.contributions:
+        out += [f"#### {c.title}", "", evidence(c.summary), ""]
+        out += [f"- {evidence(pt)}" for pt in c.points]
+        if c.technologies:
+            out += ["", "기술: " + ", ".join(f"`{t}`" for t in c.technologies)]
+        out.append("")
+    out += ["### 기술 스택", ""]
+    out += [f"- **{g.category}**: {', '.join(g.items)}" for g in p.tech_stack] or ["-"]
+    out.append("")
 
     out += ["## 발표 자료", ""]
     for i, slide in enumerate(r.outputs.slides, 1):
-        out += [f"### {i}. {slide.title}", ""]
-        out += [f"- {evidence(s)}" for s in slide.bullets]
+        out += [f"### {i}. {slide.title} `{slide.layout}`", "", f"**{slide.headline}**", ""]
+        if slide.flow:
+            out += [" → ".join(slide.flow), ""]
+        out += [f"- **{pt.heading}** {evidence(pt)}" for pt in slide.points]
+        out += [f"- 📊 **{h.value}** {h.label}" for h in slide.highlights]
         if slide.notes:
             out += ["", f"> 발표자 메모: {slide.notes}"]
         out.append("")
