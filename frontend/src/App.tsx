@@ -23,9 +23,11 @@ export default function App() {
   // 접근 코드: 'checking' → 서버 설정 확인 중, 'locked' → 코드 입력 필요, 'open' → 사용 가능
   const [access, setAccess] = useState<'checking' | 'locked' | 'open'>('checking')
   const [accessError, setAccessError] = useState<string | null>(null)
+  const [waking, setWaking] = useState(false) // 잠든 서버를 깨우는 중
 
   useEffect(() => {
-    getConfig()
+    getConfig(() => setWaking(true))
+      .finally(() => setWaking(false))
       .then((c) => setAccess(c.access_code_required && !getAccessCode() ? 'locked' : 'open'))
       .catch(() => setAccess('open')) // 설정을 못 읽으면 일단 열고, 실제 요청에서 다시 확인한다
   }, [])
@@ -107,6 +109,12 @@ export default function App() {
             ))}
           </ul>
         </header>
+
+        {waking && (
+          <p className="mx-auto max-w-md rounded-xl bg-indigo-50 px-4 py-3 text-center text-sm text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+            서버를 깨우는 중입니다… 무료 서버라 한동안 쓰지 않으면 잠들어서, 처음에는 1분 가까이 걸릴 수 있습니다.
+          </p>
+        )}
 
         {access === 'locked' && (
           <AccessGate

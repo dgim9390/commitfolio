@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     per_ip_daily_limit: int = 0  # 하루 IP당 분석 횟수 상한 (0 = 제한 없음)
     max_repo_size_mb: int = 500  # 이보다 큰 레포는 클론하지 않는다
     max_commits: int = 400  # 분석할 커밋이 이보다 많으면 기간을 좁혀 달라고 한다
+    # 앞단 프록시가 몇 겹인지. Render만 쓰면 1, Vercel(화면) → Render(API)처럼 하나 더 거치면 2
+    proxy_hops: int = 1
 
     # LLM 비용 제한용 diff 길이 상한 (문자 수)
     # 24000자 ≈ 8천 토큰 정도. 커밋 40개 레포 전체 요약에 입력 약 30만 토큰 이내

@@ -83,3 +83,17 @@ def test_repo_too_large():
 
 def test_too_many_commits_message():
     assert "기간을 좁혀" in str(TooManyCommitsError(800, 400))
+
+
+def test_client_ip_with_two_proxies(monkeypatch):
+    """Vercel → Render처럼 프록시가 두 겹이면 뒤에서 두 번째가 실제 방문자."""
+    from starlette.requests import Request
+
+    def req(xff: str) -> Request:
+        return Request({"type": "http", "headers": [(b"x-forwarded-for", xff.encode())], "client": ("10.0.0.1", 1)})
+
+    monkeypatch.setattr(main.settings, "proxy_hops", 2)
+    assert main.client_ip(req("6.6.6.6, 1.2.3.4, 76.76.21.21")) == "1.2.3.4"  # 위장 값·Vercel IP 무시
+    assert main.client_ip(req("1.2.3.4")) == "1.2.3.4"  # 값이 하나뿐이면 그 값
+    monkeypatch.setattr(main.settings, "proxy_hops", 1)
+    assert main.client_ip(req("6.6.6.6, 1.2.3.4")) == "1.2.3.4"

@@ -107,6 +107,16 @@ uv run commitfolio generate dgim9390/DeskBoard -u dgim9390           # 3. 포트
 - 분석할 커밋이 `MAX_COMMITS`(기본 400개)보다 많으면 기간을 좁혀 달라고 안내합니다.
 - IP 제한은 호스팅 프록시가 붙이는 값을 기준으로 해서, 방문자가 IP를 위장해 우회할 수 없습니다.
 
+### 화면만 Vercel에 올리기 (선택)
+
+API는 Render에 두고, 화면은 Vercel에서 내보낼 수도 있습니다. 주소가 `*.vercel.app` 하나로 보이고 화면이 빠르게 뜹니다.
+
+1. [`frontend/vercel.json`](frontend/vercel.json)에 Render 서비스 주소를 넣습니다. `/api` 요청을 Render로 넘기는 설정입니다.
+2. Vercel에서 이 레포를 가져오고(Import), **Root Directory를 `frontend`**로 지정합니다. Vite는 자동으로 인식됩니다.
+3. Render 환경변수에 **`PROXY_HOPS=2`**를 추가합니다. 프록시가 Vercel → Render로 두 겹이 되어서, 방문자 IP를 X-Forwarded-For의 뒤에서 두 번째 값으로 읽어야 IP당 제한이 제대로 동작합니다.
+
+Render가 잠들어 있으면 화면이 "서버를 깨우는 중"이라고 안내하면서 1분 동안 다시 시도합니다.
+
 **무료 호스팅의 한계 (Render 무료 기준):** 15분 동안 접속이 없으면 잠들고, 다시 깨어나는 데 최대 1분 걸립니다. 디스크가 유지되지 않아 재시작하면 저장된 결과가 사라집니다.
 
 ## 환경변수

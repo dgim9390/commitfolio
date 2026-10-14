@@ -33,10 +33,12 @@ def require_access(x_access_code: str | None = Header(default=None)) -> None:
 
 def client_ip(request: Request) -> str:
     # 배포 서버는 앞단 프록시를 거치므로 접속 IP는 X-Forwarded-For에 있다.
-    # 첫 값은 방문자가 마음대로 넣을 수 있어서(IP 제한 우회), 호스팅 프록시가 붙인 마지막 값을 쓴다
-    forwarded = request.headers.get("x-forwarded-for")
+    # 프록시는 이 목록 끝에 '자기가 받은 접속 IP'를 덧붙인다. 앞쪽 값은 방문자가 마음대로 넣을 수
+    # 있으므로(IP 제한 우회), 믿을 수 있는 프록시 수(proxy_hops)만큼 뒤에서 센 값을 쓴다.
+    # 예) Vercel → Render: [방문자가 넣은 값..., 실제 방문자, Vercel 서버] → 뒤에서 두 번째
+    forwarded = [ip.strip() for ip in request.headers.get("x-forwarded-for", "").split(",") if ip.strip()]
     if forwarded:
-        return forwarded.split(",")[-1].strip()
+        return forwarded[-min(settings.proxy_hops, len(forwarded))]
     return request.client.host if request.client else "unknown"
 
 

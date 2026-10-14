@@ -70,8 +70,17 @@ export function resetOutputs(jobId: string): Promise<Job> {
   return request(`/api/jobs/${jobId}/outputs`, { method: 'DELETE' })
 }
 
-export function getConfig(): Promise<{ access_code_required: boolean }> {
-  return request('/api/config')
+/** 서버 설정 확인. 무료 서버는 한동안 안 쓰면 잠들어서 깨어나는 데 1분 가까이 걸리므로 몇 번 다시 시도한다 */
+export async function getConfig(onWaiting?: () => void): Promise<{ access_code_required: boolean }> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await request('/api/config')
+    } catch (e) {
+      if (attempt >= 11) throw e // 약 1분(5초 × 12번) 동안 안 깨어나면 포기
+      onWaiting?.()
+      await new Promise((r) => setTimeout(r, 5000))
+    }
+  }
 }
 
 /** 접근 코드가 맞는지 확인 (틀리면 AccessDeniedError) */
