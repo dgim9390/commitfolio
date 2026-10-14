@@ -167,4 +167,5 @@ def validate_outputs(
             tech_stack=[TechGroup(category=g.category, items=g.items) for g in p.tech_stack if g.items],
         ),
         slides=slides,
+        theme=raw.theme,
     )

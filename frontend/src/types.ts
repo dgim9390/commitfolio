@@ -45,9 +45,12 @@ export interface Portfolio {
   tech_stack: { category: string; items: string[] }[]
 }
 
+export type SlideThemeName = 'aurora' | 'terminal' | 'paper' | 'sunset' | 'ocean' | 'mono' | 'forest'
+
 export interface Outputs {
   portfolio: Portfolio
   slides: Slide[]
+  theme?: SlideThemeName // 예전 결과에는 없을 수 있다 → aurora
 }
 
 export interface CommitRef {

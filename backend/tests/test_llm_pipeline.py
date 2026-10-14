@@ -183,6 +183,7 @@ def test_validate_outputs():
             ],
             tech_stack=[LLMTechGroup(category="Frontend", items=["TypeScript"]), LLMTechGroup(category="빈 분야", items=[])],
         ),
+        theme="sunset",
         slides=[
             slide("cover", "데스크보드"),
             slide("feature", "3D", points=[LLMSlidePoint(heading="장면", text="three.js 장면", evidence=["C03", "C01"])],
@@ -215,6 +216,7 @@ def test_validate_outputs():
     assert any("3배" in n for n in notes)
     assert any("발표자 메모" in n for n in notes)  # "2주" 근거 없음
     assert out.slides[2].points[0].from_readme
+    assert out.theme == "sunset"
 
 
 def test_llm_cache_and_provider_selection(tmp_path):
@@ -225,7 +227,7 @@ def test_llm_cache_and_provider_selection(tmp_path):
 
         def _call(self, system, prompt, schema):
             calls.append(prompt)
-            return schema(portfolio=LLMPortfolio(tagline="t", overview="o", contributions=[], tech_stack=[]), slides=[]), 10, 5
+            return schema(portfolio=LLMPortfolio(tagline="t", overview="o", contributions=[], tech_stack=[]), slides=[], theme="mono"), 10, 5
 
     llm = CountingLLM(Settings(), LLMCache(tmp_path / "llm.sqlite3"))
     first = llm.parse(system="s", prompt="p", schema=LLMOutputs)

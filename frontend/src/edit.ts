@@ -17,6 +17,7 @@ export function cleanOutputs(o: Outputs): Outputs {
   const filled = (s: Statement) => s.text.trim() !== ''
   const words = (xs: string[]) => xs.map((x) => x.trim()).filter(Boolean)
   return {
+    theme: o.theme,
     portfolio: {
       ...o.portfolio,
       contributions: o.portfolio.contributions

@@ -216,9 +216,14 @@ class Slide(BaseModel):
     notes: str  # 발표자 메모
 
 
+# 발표 자료 테마. AI가 프로젝트 성격을 보고 고르고, 사용자가 직접 바꿀 수도 있다
+SlideTheme = Literal["aurora", "terminal", "paper", "sunset", "ocean", "mono", "forest"]
+
+
 class Outputs(BaseModel):
     portfolio: Portfolio
     slides: list[Slide]
+    theme: SlideTheme = "aurora"  # 예전에 저장된 결과는 테마가 없으므로 기본값
 
 
 class LLMUsage(BaseModel):

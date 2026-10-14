@@ -2,6 +2,9 @@
 
 @theme {
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-serif: "Noto Serif KR", "Apple Myungjo", serif;
+  /* 코드 글꼴에는 한글이 없어서, 한글은 Pretendard로 이어서 보여준다 */
+  --font-mono: "JetBrains Mono", "Pretendard Variable", ui-monospace, monospace;
 }
 
 body {

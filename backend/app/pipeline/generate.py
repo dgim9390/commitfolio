@@ -8,7 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from app.config import Settings
-from app.models import CollectResult, GroupSummary, SlideLayout
+from app.models import CollectResult, GroupSummary, SlideLayout, SlideTheme
 from app.pipeline.llm import BaseLLM
 from app.pipeline.summarize import SYSTEM_PROMPT
 from app.pipeline.text import CommitIndex
@@ -65,6 +65,7 @@ class LLMSlide(BaseModel):
 class LLMOutputs(BaseModel):
     portfolio: LLMPortfolio
     slides: list[LLMSlide]
+    theme: SlideTheme
 
 
 def generate_outputs(

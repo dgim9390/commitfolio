@@ -6,6 +6,7 @@ import { CopyButton } from './CopyButton'
 import { Evidence } from './Evidence'
 import { DownloadIcon, ExpandIcon } from './icons'
 import type { Edit } from './ResultView'
+import { SLIDE_THEMES, THEME_NAMES } from '../slideThemes'
 import { SlideCard, type DeckMeta } from './SlideCard'
 import { SlideEditor } from './SlideEditor'
 
@@ -29,7 +30,8 @@ export function SlidesTab({ result, edit }: { result: AnalysisResult; edit: Edit
   const stage = useRef<HTMLDivElement>(null)
   // 편집 중에 장을 지우면 current가 범위를 넘을 수 있어 마지막 장으로 맞춘다
   const slide = slides[Math.min(current, slides.length - 1)]
-  const meta: DeckMeta = { repoName: result.repo.name, owner: result.repo.owner }
+  const theme = result.outputs.theme ?? 'aurora'
+  const meta: DeckMeta = { repoName: result.repo.name, owner: result.repo.owner, theme }
 
   // ← → (와 스페이스) 키로 넘기기. 입력창에 포커스가 있을 때는 무시
   useEffect(() => {
@@ -55,7 +57,7 @@ export function SlidesTab({ result, edit }: { result: AnalysisResult; edit: Edit
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-500">
-          <b className="text-slate-800 dark:text-slate-200">{slides.length}장</b> · ← → 키로 넘기기
+          <b className="text-slate-800 dark:text-slate-200">{slides.length}장</b> · 테마 {SLIDE_THEMES[theme].label} · ← → 키로 넘기기
         </p>
         <div className="flex flex-wrap gap-2">
           <CopyButton text={() => slideText(slide)} label="이 장 복사" />
@@ -71,6 +73,30 @@ export function SlidesTab({ result, edit }: { result: AnalysisResult; edit: Edit
           </button>
         </div>
       </div>
+
+      {edit && (
+        // 테마 고르기: 버튼마다 그 테마의 표지 색을 작게 보여준다
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="발표 자료 테마">
+          {THEME_NAMES.map((name) => (
+            <button
+              key={name}
+              type="button"
+              role="radio"
+              aria-checked={theme === name}
+              title={SLIDE_THEMES[name].description}
+              onClick={() => edit((d) => void (d.theme = name))}
+              className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
+                theme === name
+                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                  : 'border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300'
+              }`}
+            >
+              <span className={`h-4 w-6 rounded ${SLIDE_THEMES[name].cover.bg}`} />
+              {SLIDE_THEMES[name].label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 발표 모드(전체 화면)에서도 16:9를 유지하도록 가운데 정렬 */}
       <div ref={stage} className="flex items-center justify-center bg-slate-900 [&:not(:fullscreen)]:bg-transparent">
