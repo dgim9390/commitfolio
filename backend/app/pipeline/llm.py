@@ -106,6 +106,8 @@ class BaseLLM:
 class GeminiLLM(BaseLLM):
     provider = "gemini"
     MAX_RETRIES = 4  # 분당 한도(429)에 걸리면 기다렸다 다시 시도하는 횟수
+    BUSY_RETRIES = 3  # 서버 혼잡·오류(5xx)일 때 같은 모델로 다시 시도하는 횟수 (5·10·20초 간격)
+    _BUSY = {500, 502, 503, 504}
 
     def __init__(self, settings: Settings, cache: LLMCache | None):
         super().__init__(settings, cache)
@@ -117,29 +119,19 @@ class GeminiLLM(BaseLLM):
                 ".env의 GEMINI_API_KEY에 넣어 주세요."
             )
         self._client = genai.Client(api_key=settings.gemini_api_key)
+        # 기본 모델이 계속 혼잡하면 바꿔서 시도할 모델 (같으면 바꾸지 않는다)
+        fallback = settings.llm_fallback_model
+        self._models = [self.model] + ([fallback] if fallback and fallback != self.model else [])
 
     def _call(self, system: str, prompt: str, schema: type[T]) -> tuple[T, int, int]:
-        from google.genai import errors, types
+        from google.genai import types
 
         config = types.GenerateContentConfig(
             system_instruction=system,
             response_mime_type="application/json",
             response_json_schema=schema.model_json_schema(),
         )
-        for attempt in range(self.MAX_RETRIES + 1):
-            try:
-                response = self._client.models.generate_content(model=self.model, contents=prompt, config=config)
-                break
-            except errors.APIError as e:
-                text = str(e)
-                if e.code == 429 and "PerDay" not in text and attempt < self.MAX_RETRIES:
-                    # 분당 한도: 서버가 알려준 대기 시간(없으면 15·30·60초…)만큼 쉬고 재시도
-                    hint = re.search(r"retry(?:Delay| in)\D*(\d+(?:\.\d+)?)\s*s", text)
-                    time.sleep(float(hint.group(1)) + 1 if hint else 15 * 2**attempt)
-                    continue
-                raise _gemini_error(e, self.model) from e
-            except Exception as e:  # 네트워크 오류 등
-                raise LLMError(f"Gemini API에 연결할 수 없습니다: {e}") from e
+        response = self._generate(prompt, config)
 
         if not response.text:
             raise LLMError("Gemini가 빈 응답을 보냈습니다 (안전 필터에 걸렸을 수 있습니다). 다시 시도해 보세요.")
@@ -151,6 +143,43 @@ class GeminiLLM(BaseLLM):
         meta = response.usage_metadata
         return result, (meta.prompt_token_count or 0) if meta else 0, (meta.candidates_token_count or 0) if meta else 0
 
+    def _generate(self, prompt: str, config):
+        """일시적인 오류는 기다렸다 다시 시도하고, 기본 모델이 계속 혼잡하면 대체 모델로 바꾼다.
+
+        - 429 분당 한도: 서버가 알려준 시간만큼 쉬고 같은 모델로 다시 (하루 한도는 바로 실패)
+        - 5xx 혼잡·서버 오류: 5·10·20초 쉬고 다시, 그래도 안 되면 다음 모델로
+        """
+        from google.genai import errors
+
+        last_error = None
+        for model in self._models:
+            rate_tries = busy_tries = 0
+            while True:
+                try:
+                    response = self._client.models.generate_content(model=model, contents=prompt, config=config)
+                    if model != self.model:
+                        with self._lock:
+                            self.usage.model = f"{self.provider}/{self.model} (혼잡해서 일부 {model} 사용)"
+                    return response
+                except errors.APIError as e:
+                    text = str(e)
+                    if e.code == 429 and "PerDay" not in text and rate_tries < self.MAX_RETRIES:
+                        hint = re.search(r"retry(?:Delay| in)\D*(\d+(?:\.\d+)?)\s*s", text)
+                        time.sleep(float(hint.group(1)) + 1 if hint else 15 * 2**rate_tries)
+                        rate_tries += 1
+                        continue
+                    if e.code in self._BUSY:
+                        if busy_tries < self.BUSY_RETRIES:
+                            time.sleep(5 * 2**busy_tries)
+                            busy_tries += 1
+                            continue
+                        last_error = e
+                        break  # 이 모델은 계속 혼잡 → 다음 모델
+                    raise _gemini_error(e, model) from e
+                except Exception as e:  # 네트워크 오류 등
+                    raise LLMError(f"Gemini API에 연결할 수 없습니다: {e}") from e
+        raise _gemini_error(last_error, self.model) from last_error
+
 
 def _gemini_error(e, model: str) -> LLMError:
     text = str(e)
@@ -161,6 +190,11 @@ def _gemini_error(e, model: str) -> LLMError:
                 "이미 분석한 그룹은 캐시에 저장돼 있어서 내일 이어서 실행하면 남은 부분만 호출합니다."
             )
         return LLMError("Gemini 분당 사용 한도에 계속 걸립니다. 1~2분 뒤에 다시 시도하세요.")
+    if e.code in (500, 502, 503, 504):
+        return LLMError(
+            "Gemini 서버가 지금 혼잡합니다 (Google 쪽 일시적인 문제). 몇 분 뒤 다시 시도하세요. "
+            "이미 끝난 부분은 저장돼 있어서 다시 실행하면 이어서 진행합니다."
+        )
     if e.code in (401, 403):
         return LLMError("GEMINI_API_KEY가 유효하지 않거나 권한이 없습니다. AI Studio에서 키를 확인하세요.")
     if e.code == 404:

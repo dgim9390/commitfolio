@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     anthropic_api_key: str = ""
     llm_model: str = ""  # 비우면 제공자별 기본 모델 (llm.DEFAULT_MODELS)
+    # Gemini 기본 모델이 계속 혼잡(503)하면 대신 쓸 무료 모델. 비우면 바꾸지 않는다
+    llm_fallback_model: str = "gemini-3.5-flash-lite"
     llm_effort: str = "medium"  # Claude 전용: low | medium | high | xhigh | max
     # 한 번의 LLM 호출에 넣을 그룹 요약 입력 상한. 무료 등급은 하루 호출 수가 적어서
     # 여러 그룹을 한 번에 요약한다 (DeskBoard 기준 2회)
