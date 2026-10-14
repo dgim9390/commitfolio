@@ -6,9 +6,10 @@ import { CopyButton } from './CopyButton'
 import { Evidence } from './Evidence'
 import { DownloadIcon, ExpandIcon } from './icons'
 import type { Edit } from './ResultView'
-import { SLIDE_THEMES, THEME_NAMES } from '../slideThemes'
+import { SLIDE_THEMES } from '../slideThemes'
 import { SlideCard, type DeckMeta } from './SlideCard'
 import { SlideEditor } from './SlideEditor'
+import { ThemePicker } from './ThemePicker'
 
 export function SlidesTab({ result, edit }: { result: AnalysisResult; edit: Edit | null }) {
   const slides = result.outputs.slides
@@ -74,29 +75,7 @@ export function SlidesTab({ result, edit }: { result: AnalysisResult; edit: Edit
         </div>
       </div>
 
-      {edit && (
-        // 테마 고르기: 버튼마다 그 테마의 표지 색을 작게 보여준다
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="발표 자료 테마">
-          {THEME_NAMES.map((name) => (
-            <button
-              key={name}
-              type="button"
-              role="radio"
-              aria-checked={theme === name}
-              title={SLIDE_THEMES[name].description}
-              onClick={() => edit((d) => void (d.theme = name))}
-              className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
-                theme === name
-                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
-                  : 'border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300'
-              }`}
-            >
-              <span className={`h-4 w-6 rounded ${SLIDE_THEMES[name].cover.bg}`} />
-              {SLIDE_THEMES[name].label}
-            </button>
-          ))}
-        </div>
-      )}
+      {edit && <ThemePicker theme={theme} edit={edit} />}
 
       {/* 발표 모드(전체 화면)에서도 16:9를 유지하도록 가운데 정렬 */}
       <div ref={stage} className="flex items-center justify-center bg-slate-900 [&:not(:fullscreen)]:bg-transparent">

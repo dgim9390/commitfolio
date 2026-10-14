@@ -6,16 +6,19 @@ import { CopyButton } from './CopyButton'
 import { AddButton, EditList, EditText, RemoveButton } from './Editable'
 import { Evidence } from './Evidence'
 import { CheckIcon } from './icons'
+import { PortfolioView } from './PortfolioView'
 import type { Edit } from './ResultView'
+import { ThemePicker } from './ThemePicker'
 
 /** edit가 있으면 편집 모드: 글자 대신 입력 칸을 보여준다 */
 export function PortfolioTab({ result, edit }: { result: AnalysisResult; edit: Edit | null }) {
   const p = result.outputs.portfolio
   const [withLinks, setWithLinks] = useState(true)
 
-  return (
-    <div className="space-y-10">
-      {!edit && (
+  // 보기: 테마가 적용된 포트폴리오 페이지
+  if (!edit) {
+    return (
+      <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-end gap-3">
           <label className="flex items-center gap-1.5 text-xs text-slate-500">
             <input type="checkbox" className="accent-indigo-600" checked={withLinks} onChange={(e) => setWithLinks(e.target.checked)} />
@@ -23,7 +26,15 @@ export function PortfolioTab({ result, edit }: { result: AnalysisResult; edit: E
           </label>
           <CopyButton text={() => portfolioMarkdown(result, withLinks)} label="전체 복사 (마크다운)" primary />
         </div>
-      )}
+        <PortfolioView result={result} withLinks={withLinks} />
+      </div>
+    )
+  }
+
+  // 편집: 입력 칸이 잘 보이도록 테마 없이 중립적인 화면으로 고친다
+  return (
+    <div className="space-y-10">
+      <ThemePicker theme={result.outputs.theme ?? 'aurora'} edit={edit} />
 
       {/* 개요: 한 줄 소개를 크게, 설명은 읽기 좋은 폭으로 */}
       <section>

@@ -7,6 +7,7 @@ import type { SlideThemeName } from './types'
 export interface SlideTheme {
   label: string
   description: string
+  dark: boolean // 본문 배경이 어두운 테마 (근거 칩 등 작은 요소의 색을 바꾸는 데 쓴다)
   cover: {
     style: 'glow' | 'terminal' | 'paper' | 'mono' // 표지 장식 방식
     bg: string
@@ -39,6 +40,7 @@ export const SLIDE_THEMES: Record<SlideThemeName, SlideTheme> = {
   aurora: {
     label: '오로라',
     description: '보라 그라데이션 · 범용 웹·AI 서비스',
+    dark: false,
     cover: {
       style: 'glow',
       bg: 'bg-gradient-to-br from-indigo-950 via-indigo-700 to-violet-600 text-white',
@@ -69,6 +71,7 @@ export const SLIDE_THEMES: Record<SlideThemeName, SlideTheme> = {
   terminal: {
     label: '터미널',
     description: '어두운 화면 + 코드 글꼴 · 개발 도구·백엔드·CLI',
+    dark: true,
     cover: {
       style: 'terminal',
       bg: 'bg-[#0b0f17] text-slate-100',
@@ -99,6 +102,7 @@ export const SLIDE_THEMES: Record<SlideThemeName, SlideTheme> = {
   paper: {
     label: '페이퍼',
     description: '종이 질감 + 명조체 · 문서·연구·교육·리포트',
+    dark: false,
     cover: {
       style: 'paper',
       bg: 'bg-[#f4efe6] text-stone-900',
@@ -129,6 +133,7 @@ export const SLIDE_THEMES: Record<SlideThemeName, SlideTheme> = {
   sunset: {
     label: '선셋',
     description: '주황·분홍 그라데이션 · 소비자 앱·라이프스타일',
+    dark: false,
     cover: {
       style: 'glow',
       bg: 'bg-gradient-to-br from-orange-500 via-rose-500 to-fuchsia-600 text-white',
@@ -159,6 +164,7 @@ export const SLIDE_THEMES: Record<SlideThemeName, SlideTheme> = {
   ocean: {
     label: '오션',
     description: '청록 · 데이터·대시보드·모바일·여행',
+    dark: false,
     cover: {
       style: 'glow',
       bg: 'bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-500 text-white',
@@ -189,6 +195,7 @@ export const SLIDE_THEMES: Record<SlideThemeName, SlideTheme> = {
   mono: {
     label: '모노',
     description: '흑백 고대비 · 미니멀 도구·디자인',
+    dark: false,
     cover: {
       style: 'mono',
       bg: 'bg-black text-white',
@@ -219,6 +226,7 @@ export const SLIDE_THEMES: Record<SlideThemeName, SlideTheme> = {
   forest: {
     label: '포레스트',
     description: '초록 · 환경·건강·교육·게임·커뮤니티',
+    dark: false,
     cover: {
       style: 'glow',
       bg: 'bg-gradient-to-br from-emerald-950 via-green-800 to-lime-600 text-white',
