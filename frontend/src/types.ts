@@ -33,8 +33,10 @@ export interface Slide {
 
 export interface Contribution {
   title: string
-  summary: Statement
-  points: Statement[]
+  background?: Statement | null // 배경: 왜 필요했는지 (예전 결과에는 없다)
+  summary: Statement // 한 일
+  points: Statement[] // 구현 포인트
+  outcome?: Statement | null // 결과: 근거로 확인된 것만 (없으면 생략)
   technologies: string[]
 }
 
@@ -45,12 +47,29 @@ export interface Portfolio {
   tech_stack: { category: string; items: string[] }[]
 }
 
+// 디자인 네 축 (design.ts에서 CSS 변수로 풀어 쓴다)
+export type PaletteName =
+  | 'indigo' | 'violet' | 'blue' | 'sky' | 'cyan' | 'teal' | 'emerald' | 'green'
+  | 'lime' | 'amber' | 'orange' | 'rose' | 'fuchsia' | 'slate' | 'stone'
+export type SurfaceName = 'light' | 'tint' | 'paper' | 'ink' | 'dark'
+export type FontName = 'sans' | 'serif' | 'mono' | 'display'
+export type CoverName = 'glow' | 'terminal' | 'paper' | 'mono'
+
+export interface Design {
+  palette: PaletteName
+  surface: SurfaceName
+  font: FontName
+  cover: CoverName
+}
+
+// 예전 테마 이름. design이 없는 옛 결과를 조합으로 바꿀 때만 쓴다
 export type SlideThemeName = 'aurora' | 'terminal' | 'paper' | 'sunset' | 'ocean' | 'mono' | 'forest'
 
 export interface Outputs {
   portfolio: Portfolio
   slides: Slide[]
-  theme?: SlideThemeName // 예전 결과에는 없을 수 있다 → aurora
+  design?: Design | null
+  theme?: SlideThemeName | null // 예전 결과 (design이 없을 때 조합으로 변환)
 }
 
 export interface CommitRef {

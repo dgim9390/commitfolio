@@ -170,11 +170,16 @@ class Statement(BaseModel):
 
 
 class Contribution(BaseModel):
-    """포트폴리오의 주요 기여 하나: 제목 → 한 줄 요약 → 구체 포인트 → 기술 태그."""
+    """포트폴리오의 주요 기여 하나: 제목 → 배경 → 한 일(요약 + 구현 포인트) → 결과 → 기술 태그.
+
+    배경·결과는 근거가 없으면 검증 단계에서 빠진다 (예전에 저장된 결과에도 없다).
+    """
 
     title: str
-    summary: Statement
-    points: list[Statement]
+    background: Statement | None = None  # 왜 필요했는지
+    summary: Statement  # 무엇을 어떻게 만들었는지
+    points: list[Statement]  # 구현 포인트
+    outcome: Statement | None = None  # 그래서 무엇이 가능해졌는지 (근거로 확인된 것만)
     technologies: list[str]
 
 
@@ -216,14 +221,34 @@ class Slide(BaseModel):
     notes: str  # 발표자 메모
 
 
-# 발표 자료 테마. AI가 프로젝트 성격을 보고 고르고, 사용자가 직접 바꿀 수도 있다
+# 디자인은 고정 테마가 아니라 네 축의 조합이다 (15 × 5 × 4 × 4 = 1,200가지).
+# AI가 프로젝트 성격을 보고 축마다 하나씩 고르고, 사용자가 직접 바꿀 수도 있다.
+# 각 값의 뜻은 프론트엔드 design.ts와 prompts/generate.md에 있다.
+PaletteName = Literal[
+    "indigo", "violet", "blue", "sky", "cyan", "teal", "emerald", "green",
+    "lime", "amber", "orange", "rose", "fuchsia", "slate", "stone",
+]
+SurfaceName = Literal["light", "tint", "paper", "ink", "dark"]
+FontName = Literal["sans", "serif", "mono", "display"]
+CoverName = Literal["glow", "terminal", "paper", "mono"]
+
+
+class Design(BaseModel):
+    palette: PaletteName = "indigo"  # 색 계열
+    surface: SurfaceName = "light"  # 배경 톤
+    font: FontName = "sans"  # 글꼴
+    cover: CoverName = "glow"  # 표지 형식
+
+
+# 예전 결과에 저장된 테마 이름. 화면에서 같은 뜻의 디자인 조합으로 바꿔 보여준다
 SlideTheme = Literal["aurora", "terminal", "paper", "sunset", "ocean", "mono", "forest"]
 
 
 class Outputs(BaseModel):
     portfolio: Portfolio
     slides: list[Slide]
-    theme: SlideTheme = "aurora"  # 예전에 저장된 결과는 테마가 없으므로 기본값
+    design: Design | None = None  # 예전에 저장된 결과에는 없다 → theme으로 대신한다
+    theme: SlideTheme | None = None
 
 
 class LLMUsage(BaseModel):

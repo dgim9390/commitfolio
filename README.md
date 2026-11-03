@@ -1,270 +1,174 @@
 # CommitFolio
 
-GitHub 공개 레포 주소를 넣으면 커밋·PR·diff를 읽고 **포트폴리오 소개글**과 **발표 자료**를 만들어 주는 웹앱입니다.
+**GitHub 레포 주소만 넣으면, 커밋과 코드 변경을 읽고 포트폴리오 소개글과 발표 자료를 만들어 주는 웹앱입니다.**
 
-AI가 쓴 문장은 그럴듯하지만 근거가 없을 때가 많습니다. CommitFolio는 이 문제를 줄이는 데 집중합니다.
-
-- **모든 문장에 근거 커밋 링크**가 붙습니다. 누르면 GitHub 커밋 페이지로 갑니다.
-- **수치는 원문에 있을 때만** 씁니다. "성능 50% 개선" 같은 표현은 근거 커밋의 메시지나 diff에 그 숫자가 있어야 하고, 없으면 그 문장을 결과에서 뺍니다.
-- **커밋 메시지보다 diff를 믿습니다.** "fix", "update"처럼 부실한 메시지도 실제 코드 변경으로 내용을 파악합니다.
+🔗 **https://commitfolio.vercel.app** · 초대받은 사람만 쓸 수 있도록 접근 코드가 걸려 있습니다.
 
 <p align="center">
-  <img src="docs/screenshot-portfolio.png" width="780" alt="CommitFolio 결과 화면: 포트폴리오 소개글" />
+  <img src="docs/screenshot-portfolio.png" width="760" alt="결과 화면: 포트폴리오 소개글" />
 </p>
-
 <p align="center">
   <img src="docs/slide-cover.png" width="49%" alt="발표 자료 표지" />
   <img src="docs/slide-architecture.png" width="49%" alt="발표 자료 구조 슬라이드" />
 </p>
+<p align="center"><sub>dgim9390/DeskBoard(커밋 39개)를 분석한 결과</sub></p>
 
-<p align="center"><sub>dgim9390/DeskBoard(커밋 39개)를 분석한 결과, 선셋 테마입니다. 수치 카드(6종·3단계·50단계)는 근거 커밋에서 확인된 값만 표시됩니다.</sub></p>
+## 왜 만들었나
 
-**레포마다 다른 테마.** AI가 프로젝트 성격을 보고 7가지 테마 중 하나를 고르고, 포트폴리오와 발표 자료에 같이 적용합니다. 편집 모드에서 직접 바꿀 수도 있습니다.
+AI에게 "내 프로젝트로 포트폴리오 써 줘"라고 하면 그럴듯하지만 근거 없는 문장이 나옵니다. CommitFolio는 **실제 커밋으로 확인되는 내용만** 쓰도록 만드는 데 집중했습니다.
 
-| 터미널 · 개발 도구·백엔드 | 페이퍼 · 문서·연구·리포트 |
+- **모든 문장에 근거 커밋 링크**가 붙습니다. 누르면 GitHub의 그 커밋으로 갑니다.
+- **수치는 원문에 있을 때만** 씁니다. "성능 50% 개선" 같은 숫자가 근거 커밋에 없으면 그 문장은 결과에서 빠집니다.
+- **커밋 메시지보다 코드 변경(diff)을 봅니다.** "fix", "update" 같은 부실한 메시지여도 실제로 바뀐 내용으로 판단합니다.
+
+## 무엇을 만들어 주나
+
+**포트폴리오 소개글**
+- 한 줄 소개, 프로젝트 개요, 분야별 기술 스택
+- 주요 기여 4~6개. 기여마다 **배경 → 한 일 → 결과** 순서로 정리하고, 구현 포인트와 기술 태그를 붙입니다.
+
+**발표 자료 (8~10장)**
+- 표지 → 목차 → 문제 정의 → 핵심 기능·구조 → 기술 스택 → 정리
+- 장마다 핵심 메시지 한 문장, 구조 장에는 흐름도, 근거가 확인된 수치만 큰 숫자 카드로
+- 발표자 메모, 발표 모드(전체 화면), PDF 저장
+
+**레포마다 다른 디자인**
+- AI가 프로젝트 성격을 보고 **색(15) × 배경(5) × 글꼴(4) × 표지(4)** 를 조합합니다. 포트폴리오와 발표 자료에 같이 적용됩니다.
+
+| 터미널 · 개발 도구 | 페이퍼 · 문서·연구 | 오션 · 데이터·모바일 | 모노 · 미니멀 |
+|---|---|---|---|
+| <img src="docs/theme-terminal.png" alt="터미널 조합" /> | <img src="docs/theme-paper.png" alt="페이퍼 조합" /> | <img src="docs/theme-ocean.png" alt="오션 조합" /> | <img src="docs/theme-mono.png" alt="모노 조합" /> |
+
+**직접 수정**
+- 마음에 안 들거나 사실과 다른 부분은 "수정하기"로 고칠 수 있습니다. 문장, 항목, 슬라이드 순서, 디자인 모두 바꿀 수 있습니다.
+- 사람이 고친 문장에는 "직접 수정" 표시가 붙어 AI가 근거로 확인한 문장과 구분됩니다. AI 원본으로 언제든 되돌릴 수 있습니다.
+
+## 사용 방법
+
+1. https://commitfolio.vercel.app 에 들어가 접근 코드를 입력합니다.
+2. 공개 레포 주소와 분석할 GitHub 아이디를 넣습니다. 협업 레포라면 본인 아이디만 넣으면 그 사람의 커밋만 분석합니다. 기간도 지정할 수 있습니다.
+3. 1분 안팎이면 결과가 나옵니다. **포트폴리오 / 발표 자료 / 근거·검증** 탭에서 확인하고, 복사하거나 PDF로 저장합니다.
+
+> 무료 서버라 한동안 아무도 쓰지 않으면 잠듭니다. 처음 접속할 때 "서버를 깨우는 중"이 보이면 1분 정도 기다려 주세요.
+
+## 어떻게 동작하나
+
+```
+레포 URL + GitHub 아이디
+  ① 수집     GitHub API로 이 사람의 커밋 목록·PR·README, git clone으로 커밋별 diff
+  ② 필터링   lock 파일·빌드 산출물·이미지 제외, diff 길이 제한
+  ③ 그룹화   커밋을 '기능 단위 작업'으로 묶기
+  ④ 요약     AI가 작업마다 "무슨 문제를 어떻게 해결했는지" 정리
+  ⑤ 생성     AI가 포트폴리오·발표 자료·디자인 조합 작성
+  ⑥ 검증     근거 커밋·숫자·내용 일치를 코드로 확인
+```
+
+**설계에서 신경 쓴 점**
+- **API 호출 최소화:** "누구의 커밋인지"는 GitHub API로, "무엇을 바꿨는지"는 git clone으로 읽습니다. 그래서 커밋이 많아도 API 호출이 늘지 않습니다(DeskBoard 기준 GitHub 5회, AI 3회).
+- **그룹화:** 같은 PR이나 같은 메시지 이름표(`3D:`, `feat(api):`)는 무조건 묶습니다. 나머지는 바꾼 경로와 메시지의 유사도(IDF 가중치)로 **평균 연결 군집화**를 해서, 이웃끼리만 비슷해도 전부 이어지는 "사슬 현상"을 막습니다.
+- **diff 길이 제한:** 파일끼리 공평하게 나눠(water-filling) 앞 파일이 상한을 다 쓰고 뒤 파일이 통째로 빠지는 일이 없게 합니다.
+- **AI 출력 검증:**
+  - AI에게는 커밋을 `C01` 같은 짧은 ID로 보여주고, 없는 ID는 걸러냅니다.
+  - 수치는 커밋에서 글자 그대로 복사한 인용이 있어야 쓸 수 있습니다.
+  - 문장과 근거 커밋의 단어 겹침(BM25 방식)을 계산해서, 같은 작업의 엉뚱한 커밋이 근거로 붙으면 더 맞는 커밋으로 바꿉니다.
+- **캐시:** GitHub 응답과 AI 응답을 저장해서 같은 레포를 다시 분석하면 AI 호출이 0회입니다.
+
+## 기술 스택
+
+| 영역 | 사용 기술 |
 |---|---|
-| <img src="docs/theme-terminal.png" alt="터미널 테마 표지" /> | <img src="docs/theme-paper.png" alt="페이퍼 테마 표지" /> |
-| **오션 · 데이터·대시보드·모바일** | **모노 · 미니멀 도구·디자인** |
-| <img src="docs/theme-ocean.png" alt="오션 테마 표지" /> | <img src="docs/theme-mono.png" alt="모노 테마 표지" /> |
+| 프론트엔드 | React, TypeScript, Vite, Tailwind CSS |
+| 백엔드 | Python, FastAPI, Pydantic, httpx, SQLite(캐시) |
+| AI | Gemini API (무료 등급, 기본) · Claude API (선택) |
+| 배포 | Vercel(화면) + Render(API, Docker) |
 
-<sub>이 밖에 오로라(범용 웹·AI 서비스), 선셋(소비자 앱·라이프스타일), 포레스트(환경·교육·게임)가 있습니다.</sub>
+## 배포 구조
 
-## 주요 기능
-
-- **포트폴리오 소개글:** 한 줄 소개와 개요, 주요 기여 4~6개, 분야별 기술 스택으로 구성됩니다.
-  - 기여마다 제목, 한 줄 요약, 구체적인 구현 포인트 2~3개, 기술 태그가 붙습니다.
-  - 문장별 복사와 마크다운 전체 복사를 지원합니다.
-- **레포별 테마:** 오로라·터미널·페이퍼·선셋·오션·모노·포레스트 7종. AI가 프로젝트에 맞게 고르고, 포트폴리오와 발표 자료가 같은 테마를 씁니다.
-- **발표 자료:** 8~10장의 기술 발표 슬라이드입니다.
-  - 표지 → 목차 → 문제 정의 → 핵심 기능·구조 → 기술 스택 → 정리 순서이고, 장 종류마다 레이아웃이 다릅니다.
-  - 장마다 핵심 메시지 한 문장이 들어가고, 구조 장에는 흐름도가 있습니다.
-  - 근거가 확인된 수치만 큰 숫자 카드로 보여줍니다.
-  - 발표자 메모, 키보드 넘기기, 발표 모드(전체 화면), PDF 저장을 지원합니다.
-- **직접 수정:** AI가 쓴 내용이 마음에 안 들거나 사실과 다르면 "수정하기"로 고칠 수 있습니다.
-  - 포트폴리오는 그 자리에서 고칩니다. 한 줄 소개, 개요, 기여 제목·요약·포인트·기술 태그, 기술 스택을 고칠 수 있고 항목 추가·삭제도 됩니다.
-  - 발표 자료는 슬라이드 아래 편집 칸에서 고치면 미리보기에 바로 반영됩니다. 제목, 핵심 메시지, 항목, 숫자 카드, 흐름도, 발표자 메모, 레이아웃, 장 순서를 바꾸고 장을 삭제할 수 있습니다.
-  - 사람이 고치거나 추가한 문장에는 "직접 수정" / "직접 추가" 표시가 붙어서, AI가 근거로 확인한 문장과 구분됩니다.
-  - AI 원본은 따로 보관하므로 언제든 "AI 원본으로 되돌리기"를 할 수 있습니다.
-- **결과 링크:** 주소창의 `?job=…&tab=slides&slide=4`로 같은 결과와 같은 장을 다시 열 수 있습니다. 끝난 결과와 직접 고친 내용은 `.cache/jobs/`에 저장되어 서버를 재시작해도 유지됩니다.
-- **협업 레포 지원:** 지정한 GitHub 아이디의 커밋만 골라서 분석합니다.
-- **기간 지정:** 시작일·종료일을 지정할 수 있고, 기본값은 전체 기간입니다.
-- **근거·검증 메모:** 커밋을 어떻게 묶었는지, 무엇을 분석에서 뺐는지, 검증에서 무엇을 걸러냈는지 보여줍니다.
-- **캐시:** GitHub 응답과 AI 응답을 로컬에 저장합니다. 같은 레포를 다시 분석하면 AI 호출이 0회입니다.
-
-## 빠른 시작
-
-### 필요한 것
-
-- Python 3.11 이상과 [uv](https://docs.astral.sh/uv/) (`brew install uv`)
-- Node.js 20.19 이상 또는 22.12 이상
-- git
-- [Gemini API 키](https://aistudio.google.com) (무료 등급)
-
-### 1. 설치
-
-```bash
-git clone https://github.com/dgim9390/commitfolio.git
-cd commitfolio
-cp .env.example .env          # 아래 '환경변수'를 보고 키를 채운다
-cd backend && uv sync && cd ..
-cd frontend && npm install && cd ..
+```
+브라우저 ──▶ Vercel (화면, commitfolio.vercel.app)
+               │  /api/* 요청을 그대로 전달
+               ▼
+             Render (FastAPI, Docker) ──▶ GitHub API, Gemini API
 ```
 
-### 2. 실행
+- 화면은 Vercel, API는 Render 무료 플랜에서 돌아갑니다. 연결 설정은 [`frontend/vercel.json`](frontend/vercel.json)에 있습니다.
+- Render는 [`Dockerfile`](Dockerfile)로 빌드합니다. 이 이미지는 화면까지 함께 내보내서 Render 주소만으로도 동작합니다.
+- 비밀값은 이미지에 넣지 않고 Render 환경변수에만 둡니다.
 
-터미널 두 개를 엽니다.
+**Render 환경변수**
+
+| 이름 | 설명 |
+|---|---|
+| `GEMINI_API_KEY` | [AI Studio](https://aistudio.google.com/apikey)에서 발급 (무료) |
+| `GITHUB_TOKEN` | **공개 레포 읽기 전용** Fine-grained 토큰. 없으면 GitHub API가 시간당 60회로 제한됩니다 |
+| `ACCESS_CODE` | 이 코드를 아는 사람만 사용 가능 |
+| `DAILY_ANALYSIS_LIMIT` · `PER_IP_DAILY_LIMIT` | 하루 분석 횟수 상한 (전체 · IP당). Gemini 무료 한도를 지키기 위해 |
+| `PROXY_HOPS` | `2` (Vercel → Render로 프록시가 두 겹이라 방문자 IP를 올바로 세기 위해) |
+
+선택 항목: `LLM_PROVIDER`(gemini/claude), `LLM_MODEL`, `LLM_FALLBACK_MODEL`(혼잡할 때 대신 쓸 모델), `MAX_REPO_SIZE_MB`(기본 500), `MAX_COMMITS`(기본 400), `CACHE_DIR`.
+
+## 로컬에서 실행하기
+
+필요한 것: Python 3.11+와 [uv](https://docs.astral.sh/uv/), Node.js 20.19+, git, Gemini API 키
 
 ```bash
-# 터미널 1: 백엔드 (http://localhost:8000)
-cd backend && uv run uvicorn app.main:app --port 8000
+git clone https://github.com/dgim9390/commitfolio.git && cd commitfolio
+cp .env.example .env            # GEMINI_API_KEY 등을 채운다
+cd backend && uv sync && cd ../frontend && npm install && cd ..
 ```
 
 ```bash
-# 터미널 2: 프론트엔드 (http://localhost:5173)
+# 터미널 1: API (http://localhost:8000)
+cd backend && uv run uvicorn app.main:app --reload --port 8000
+```
+
+```bash
+# 터미널 2: 화면 (http://localhost:5173)
 cd frontend && npm run dev
 ```
 
-브라우저에서 http://localhost:5173 을 엽니다. 개발 서버가 `/api` 요청을 8000번 포트로 넘겨주므로 별도 CORS 설정은 필요 없습니다.
-
-### 터미널에서만 쓰기 (CLI)
-
-웹 화면 없이 단계별 결과를 확인할 수 있습니다. 결과는 `.cache/results/`에 JSON과 마크다운으로 저장됩니다.
+화면 없이 터미널에서 단계별로 볼 수도 있습니다. 결과는 `.cache/results/`에 저장됩니다.
 
 ```bash
 cd backend
-uv run commitfolio collect dgim9390/DeskBoard -u dgim9390            # 1. 수집·필터링 결과
-uv run commitfolio group dgim9390/DeskBoard -u dgim9390 --explain    # 2. 커밋이 어떻게 묶였는지와 그 이유
-uv run commitfolio generate dgim9390/DeskBoard -u dgim9390           # 3. 포트폴리오·발표 자료 생성
+uv run commitfolio collect dgim9390/DeskBoard -u dgim9390           # 수집·필터링
+uv run commitfolio group dgim9390/DeskBoard -u dgim9390 --explain   # 그룹화와 그 이유
+uv run commitfolio generate dgim9390/DeskBoard -u dgim9390          # 전체 생성
 ```
 
-## 배포 (웹사이트로 올리기)
-
-화면과 API를 **Docker 컨테이너 하나**로 묶었습니다([`Dockerfile`](Dockerfile)). 빌드된 화면을 백엔드가 함께 내보내서 주소 하나로 동작하므로, Docker를 지원하는 호스팅(Render, Railway 등)에 레포를 연결하면 됩니다.
-
-1. 호스팅 서비스에서 이 GitHub 레포를 연결하고, 빌드 방식으로 Dockerfile을 고릅니다. 포트는 `PORT` 환경변수를 따릅니다(기본 8000).
-2. 환경변수를 설정합니다. 비밀값은 이미지에 들어가지 않고(`.dockerignore`), 호스팅 서비스의 환경변수 설정에만 넣습니다.
-
-| 이름 | 권장값 | 이유 |
-|---|---|---|
-| `GEMINI_API_KEY` | AI Studio에서 발급한 키 | |
-| `GITHUB_TOKEN` | **공개 레포 읽기 전용** Fine-grained 토큰 | 서버에는 계정 전체 권한이 있는 토큰(`gh auth token` 등)을 두지 않습니다 |
-| `ACCESS_CODE` | 아는 사람끼리만 공유할 코드 | 코드를 모르면 분석도, 결과 보기도 할 수 없습니다 |
-| `DAILY_ANALYSIS_LIMIT` | 예: `15` | Gemini 무료 한도는 프로젝트 단위라 방문자 전원이 나눠 씁니다 |
-| `PER_IP_DAILY_LIMIT` | 예: `5` | 한 사람이 한도를 다 쓰지 못하게 합니다 |
-| `CACHE_DIR` | 디스크가 유지되는 볼륨 경로 (예: `/data`) | 없으면 재시작할 때 결과 링크·직접 수정본·캐시가 사라집니다 |
-
-**함께 들어간 보호 장치:**
-- 레포가 `MAX_REPO_SIZE_MB`(기본 500MB)보다 크면 클론하지 않습니다.
-- 분석할 커밋이 `MAX_COMMITS`(기본 400개)보다 많으면 기간을 좁혀 달라고 안내합니다.
-- IP 제한은 호스팅 프록시가 붙이는 값을 기준으로 해서, 방문자가 IP를 위장해 우회할 수 없습니다.
-
-### 화면만 Vercel에 올리기 (선택)
-
-API는 Render에 두고, 화면은 Vercel에서 내보낼 수도 있습니다. 주소가 `*.vercel.app` 하나로 보이고 화면이 빠르게 뜹니다.
-
-1. [`frontend/vercel.json`](frontend/vercel.json)에 Render 서비스 주소를 넣습니다. `/api` 요청을 Render로 넘기는 설정입니다.
-2. Vercel에서 이 레포를 가져오고(Import), **Root Directory를 `frontend`**로 지정합니다. Vite는 자동으로 인식됩니다.
-3. Render 환경변수에 **`PROXY_HOPS=2`**를 추가합니다. 프록시가 Vercel → Render로 두 겹이 되어서, 방문자 IP를 X-Forwarded-For의 뒤에서 두 번째 값으로 읽어야 IP당 제한이 제대로 동작합니다.
-
-Render가 잠들어 있으면 화면이 "서버를 깨우는 중"이라고 안내하면서 1분 동안 다시 시도합니다.
-
-**무료 호스팅의 한계 (Render 무료 기준):** 15분 동안 접속이 없으면 잠들고, 다시 깨어나는 데 최대 1분 걸립니다. 디스크가 유지되지 않아 재시작하면 저장된 결과가 사라집니다.
-
-## 환경변수
-
-`.env` 파일에 넣습니다. `.env`는 `.gitignore`에 들어 있어 커밋되지 않습니다.
-
-| 이름 | 필수 | 설명 |
-|---|---|---|
-| `GEMINI_API_KEY` | ✔ (Gemini 사용 시) | [AI Studio](https://aistudio.google.com) → Get API key에서 무료로 발급 |
-| `LLM_PROVIDER` | | `gemini`(기본값, 무료 등급) 또는 `claude`(유료) |
-| `LLM_MODEL` | | 비우면 `gemini-3.8-flash` / `claude-opus-5-5` |
-| `ANTHROPIC_API_KEY` | `claude`일 때 | [Anthropic Console](https://console.anthropic.com)에서 발급 (사용량만큼 과금) |
-| `GITHUB_TOKEN` | | 없으면 GitHub API를 시간당 60회, 있으면 5000회까지 호출. 권한 없는 Fine-grained 토큰이면 충분 |
-
-`config.py`의 다른 값도 같은 이름의 환경변수로 바꿀 수 있습니다. 예를 들어 diff 길이 상한은 `MAX_PATCH_CHARS_PER_FILE`입니다.
-
-## 동작 방식
-
-```
-레포 URL + GitHub 아이디 + 기간
-  │
-  ▼
-① 수집      REST API: 레포 정보·README·언어·이 사람의 커밋 목록·머지된 PR
-            git clone: 커밋별 diff  (커밋 수와 상관없이 API 호출이 늘지 않음)
-  ▼
-② 필터링    lock 파일·빌드 산출물·바이너리·자동 생성 파일 제외, diff 길이 제한
-  ▼
-③ 그룹화    커밋을 '기능 단위 작업'으로 묶기
-  ▼
-④ 요약      AI가 작업마다 "무슨 문제를 어떻게 해결했는지" 정리 (여러 작업을 한 번에 요청)
-  ▼
-⑤ 생성      AI가 요약을 모아 포트폴리오 소개글 + 발표 자료 작성
-  ▼
-⑥ 검증      코드로 근거 확인 → 화면
-```
-
-DeskBoard(커밋 39개) 기준으로 GitHub API 5회, AI 호출 3회가 듭니다.
-
-### 주요 설계 결정
-
-- **diff는 REST API 대신 git clone으로 읽습니다.** 커밋 하나의 diff를 받는 데 API 1회가 들어서, 커밋이 많으면 호출 한도에 금방 걸리기 때문입니다. "누구의 커밋인지"는 GitHub가 아이디와 이메일을 매칭해 주는 REST로 가져오고, "무엇을 바꿨는지"는 로컬 git에서 읽습니다.
-- **API 응답은 SQLite에 캐시합니다.** ETag로 조건부 요청을 보내므로, 내용이 그대로면 GitHub가 본문 없이 304를 돌려주고 캐시를 재사용합니다. 토큰이 있으면 304는 한도에서 차감되지 않습니다.
-- **diff 길이 제한은 파일끼리 공평하게 나눕니다(water-filling).** 순서대로 자르면 앞 파일이 상한을 다 써서 뒤 파일 diff가 통째로 빠집니다. 그래서 작은 파일부터 "남은 상한 ÷ 남은 파일 수"만큼 나눠 줍니다. 그룹 단위 상한도 같은 방식으로 커밋끼리 나눕니다.
-- **AI에게 커밋을 `C01` 같은 짧은 ID로 보여줍니다.** 40자리 SHA는 옮겨 적다 틀리기 쉽고, 짧은 ID는 틀리면 "없는 ID"로 바로 걸러낼 수 있습니다.
-- **응답은 구조화된 출력(JSON 스키마)으로 받습니다.** 정해진 형식으로만 응답이 오므로 파싱 실패가 없습니다.
-- **AI 제공자를 바꿀 수 있습니다.** AI 호출이 [`llm.py`](backend/app/pipeline/llm.py)의 `parse()` 한 곳에 모여 있어서, 제공자를 바꿔도 나머지 코드는 그대로입니다.
-
-### 그룹화 기준
-
-[`grouping/`](backend/app/pipeline/grouping)에 있으며 `Grouper` 인터페이스를 따르므로 알고리즘을 통째로 바꿀 수 있습니다.
-
-0. **분석에서 빼는 커밋:** 문서만 바꾼 커밋, 버전 번호만 올린 커밋, 분석할 파일이 없는 커밋
-1. **무조건 같은 그룹**
-   - 같은 PR에 속한 커밋
-   - **메시지 앞 이름표가 같은 커밋.** `3D: ...`, `[auth] ...`, `feat(api): ...` 형식을 인식합니다. 원하는 커밋끼리 묶고 싶으면 같은 이름표를 붙이면 됩니다.
-2. **내용이 비슷하면 같은 그룹:** 바꾼 경로(60%) + 메시지(30%) + 시간(10%) 점수로 판단하고, 시간 제한은 없습니다.
-   - 경로·단어는 **IDF 가중치**를 줍니다. 모든 커밋이 건드리는 `components/` 같은 흔한 폴더는 점수에 거의 반영되지 않습니다.
-   - 한국어 메시지는 **두 글자 조각(bigram)**으로 비교합니다. 형태소 분석기 없이도 "화면을"과 "화면으로"가 겹칩니다.
-   - 합칠 때는 **평균 연결(average-linkage) 군집화**를 씁니다. 이웃한 한 쌍만 비슷해도 전부 이어지는 단일 연결의 '사슬 현상'을 막기 위해서입니다. 힙과 지연 삭제(lazy deletion)로 O(E log E)입니다.
-3. **그룹이 15개 커밋을 넘으면** 시간 간격이 가장 큰 곳에서 자릅니다.
-
-### 근거 검증
-
-[`validate.py`](backend/app/pipeline/validate.py)와 [`summarize.py`](backend/app/pipeline/summarize.py)에 있습니다.
-
-- AI가 쓴 수치(`facts`)는 **커밋에서 글자 그대로 복사한 인용**이 있어야 남깁니다. 인용이 실제 커밋에 없으면 버립니다.
-- 없는 커밋 ID는 근거에서 빼고, 근거가 하나도 남지 않은 문장은 삭제합니다.
-- 문장 속 숫자가 근거 커밋이나 README에 없으면 그 문장을 뺍니다. 슬라이드의 숫자 카드도 마찬가지입니다.
-  - `3D`, `v1.3`, `SHA-256`, `3차원`처럼 이름의 일부인 숫자는 수치로 보지 않습니다.
-  - 코드에 `a === 192 && b === 168`처럼 나뉘어 있는 IP 주소(`192.168`)도 확인된 것으로 봅니다.
-- **근거 내용 일치도 검사** ([`relevance.py`](backend/app/pipeline/relevance.py)): AI가 실제로 있는 커밋을 달아도, 같은 작업의 엉뚱한 커밋을 고를 때가 있습니다. 그래서 문장과 근거 커밋이 얼마나 겹치는지 점수를 냅니다.
-  - 비교 대상은 커밋 메시지, 파일 경로, diff 속 식별자입니다. `useDeskStore`는 use·desk·store로 쪼개서 비교합니다.
-  - IDF 가중치로 흔한 단어는 거의 반영하지 않고, BM25 방식 길이 보정으로 파일을 많이 바꾼 거대 커밋이 유리하지 않게 합니다. README 같은 문서는 프로젝트 전체를 설명해서 무엇과도 겹치므로 비교에서 뺍니다.
-  - **처리:** 유독 안 맞는 근거는 뺍니다. 근거가 모두 약하고 **같은 작업 그룹** 안에 확실히 더 맞는 커밋이 있으면 그 커밋으로 바꿉니다. 근거가 여럿이면 지우지 않고 앞에 추가합니다. 더 나은 후보가 없으면 ⚠️ 경고만 붙입니다.
-  - 맞는 근거를 지우는 것이 더 나쁘다고 보고 보수적으로 판단합니다. DeskBoard에서는 문장 46개 중 7개의 근거를 고쳤습니다. 예를 들어 "릴리프 메시 생성" 문장의 근거를 키보드 커밋에서 실제 입체 곡면 커밋으로 바꿨습니다.
-  - 숫자 검사는 AI가 처음 단 근거로 먼저 합니다. 잘못된 근거에 기대 쓴 문장이 근거를 고친 뒤 다른 커밋의 숫자로 통과되지 않게 하기 위해서입니다.
-- 무엇을 왜 뺐는지는 화면의 "근거·검증" 탭에 남습니다.
+테스트는 `cd backend && uv run pytest`로 돌립니다. AI는 가짜 객체로 대신해서 비용이 들지 않습니다.
 
 ## 폴더 구조
 
 ```
 commitfolio/
-├── .env.example
-├── Dockerfile                   배포용 이미지 (화면 빌드 + API, 컨테이너 하나)
-├── backend/                     Python · FastAPI · uv
-│   ├── app/
-│   │   ├── main.py              FastAPI 앱
-│   │   ├── api/jobs.py          분석 작업(백그라운드 스레드)·결과·직접 수정본 저장
-│   │   ├── api/limits.py        하루 분석 횟수 제한
-│   │   ├── cli.py               터미널 명령 (collect / group / generate)
-│   │   ├── config.py            환경변수 설정
-│   │   ├── errors.py            사용자에게 보여줄 한국어 에러
-│   │   ├── models.py            모든 단계가 주고받는 데이터 타입
-│   │   ├── github/              ① 수집: REST 클라이언트, SQLite 캐시, git clone
-│   │   └── pipeline/
-│   │       ├── filters.py       ② 필터링·diff 자르기
-│   │       ├── grouping/        ③ 그룹화 (base: 인터페이스, rules: 규칙, heuristic: 유사도)
-│   │       ├── llm.py           AI 호출 (Gemini / Claude), 응답 캐시
-│   │       ├── prompts/         AI 프롬프트 (system.md에 '지어내기 금지' 원칙)
-│   │       ├── summarize.py     ④ 요약
-│   │       ├── generate.py      ⑤ 생성
-│   │       ├── validate.py      ⑥ 검증 (근거 커밋 ID, 숫자)
-│       ├── relevance.py     ⑥ 근거 내용 일치도 (안 맞는 근거 빼기·바꾸기)
-│   │       └── runner.py        ①~⑥을 잇는 함수 (CLI와 API가 공유)
-│   └── tests/                   pytest (AI는 가짜 객체로 대체해 비용 0)
-├── frontend/                    React · Vite · TypeScript · Tailwind
-│   └── src/
-│       ├── App.tsx              입력 → 진행 상태(폴링) → 결과
-│       ├── api.ts, types.ts     백엔드 호출과 타입
-│       ├── edit.ts              직접 수정 도우미 (새 문장, 수정 표시, 저장 전 정리)
-│       └── components/          폼, 진행 상태, 포트폴리오·발표 자료·근거 탭
-│           ├── SlideCard.tsx    슬라이드 한 장 (장 종류별 레이아웃, 화면·썸네일·PDF 공용)
-│           ├── SlideEditor.tsx  슬라이드 편집 칸
-│           └── Editable.tsx     편집 모드 입력 칸
-├── docs/                        README 스크린샷
-└── .cache/                      (git 제외) GitHub·AI 캐시, 클론한 레포, 분석 결과(jobs/), CLI 결과
+├── backend/app/
+│   ├── main.py            API (분석 시작, 진행 상황, 직접 수정 저장, 접근 코드·사용 제한)
+│   ├── github/            ① 수집 (GitHub API 클라이언트, SQLite 캐시, git clone)
+│   └── pipeline/
+│       ├── filters.py     ② 필터링
+│       ├── grouping/      ③ 그룹화
+│       ├── summarize.py   ④ 요약
+│       ├── generate.py    ⑤ 생성 (prompts/ 에 AI 지시문)
+│       ├── validate.py    ⑥ 검증 (근거 ID, 숫자)
+│       ├── relevance.py   ⑥ 근거 내용 일치도
+│       └── llm.py         Gemini/Claude 호출, 다시 시도, 응답 캐시
+├── frontend/src/
+│   ├── components/        입력 폼, 진행 상태, 포트폴리오·발표 자료·근거 탭, 편집기
+│   └── design.ts          디자인 조합 (색·배경·글꼴·표지)
+├── Dockerfile             배포 이미지 (화면 + API)
+└── docs/                  README 이미지
 ```
 
-## 테스트
+## 한계
 
-```bash
-cd backend && uv run pytest        # 필터, diff 파싱, 그룹화, 요약 묶기, 근거 검증
-cd frontend && npm run build       # 타입 검사 + 빌드
-```
+- **공개 레포만** 분석합니다.
+- **Gemini 무료 등급**은 하루 호출 수가 적고, 입력 내용이 Google 제품 개선에 쓰일 수 있습니다. 하루 한도를 다 쓰면 한국 시간 오후 4~5시쯤 초기화됩니다.
+- **무료 서버는 디스크가 유지되지 않아**, 서버가 재시작되면 저장된 결과 링크와 직접 수정본이 사라집니다. 같은 레포를 다시 분석하면 됩니다.
+- 커밋 작성자 이메일이 GitHub 계정에 등록돼 있지 않으면 그 커밋은 본인 것으로 잡히지 않습니다.
+- 근거 일치도 검사는 단어가 겹치는 정도로 판단해서, 뜻은 같아도 단어가 전혀 다르면 놓칠 수 있습니다.
 
-## 알아둘 점
+## 앞으로
 
-- **Gemini 무료 등급**
-  - 하루·분당 호출 수 제한이 있습니다. 정확한 값은 [AI Studio](https://aistudio.google.com/rate-limit)에서 확인할 수 있습니다.
-  - 하루 한도를 다 쓰면 화면에 초기화 시각(미국 태평양 시간 자정)을 안내합니다.
-  - 이미 받은 응답은 캐시에 남아 있어서, 다시 실행하면 남은 부분만 호출합니다.
-  - **무료 등급 입력은 Google 제품 개선에 쓰일 수 있습니다.** 공개 레포만 분석하세요.
-- **근거 일치도 검사는 단어가 겹치는 정도로 판단합니다.** 의미는 같아도 쓰는 단어가 전혀 다르면 놓칠 수 있고, 다른 작업 그룹의 커밋으로는 바꾸지 않습니다. 화면의 "근거·검증" 탭에서 무엇을 고쳤는지 확인할 수 있습니다.
-- **본인 커밋이 덜 잡히는 경우:** 커밋 작성자 이메일이 GitHub 계정에 등록되어 있지 않으면 그 커밋은 빠집니다. CLI의 `collect` 결과에 "레포 전체 N개 중 M개"가 표시되니 비교해 보세요.
-- **진행 중인 작업은 서버 메모리에만 있습니다.** 분석 도중 서버를 재시작하면 그 작업은 사라집니다. 끝난 결과는 파일로 남고, 다시 분석해도 캐시를 써서 AI 호출은 다시 하지 않습니다.
-- **직접 고친 문장은 검증하지 않습니다.** 사용자가 쓴 내용은 사용자 책임으로 보고 그대로 저장합니다. 화면의 "직접 수정" 표시로 AI가 확인한 문장과 구분할 수 있습니다.
-
-## 다음 단계
-
-- GitHub OAuth 로그인과 비공개 레포 분석
+- GitHub 로그인과 비공개 레포 분석
+- 결과를 오래 보관하기 위한 DB 도입

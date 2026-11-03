@@ -123,14 +123,26 @@ def validate_outputs(
     contributions: list[Contribution] = []
     for i, c in enumerate(p.contributions, 1):
         where = f"포트폴리오 기여 {i}번 '{c.title}'"
+        # 배경·결과는 없어도 되는 칸이라, 비어 있으면 조용히 넘긴다
+        background = statement(c.background.text, c.background.evidence, where + " 배경") if c.background.text.strip() else None
         summary = statement(c.summary.text, c.summary.evidence, where)
         points = [s for pt in c.points if (s := statement(pt.text, pt.evidence, where))]
+        outcome = statement(c.outcome.text, c.outcome.evidence, where + " 결과") if c.outcome.text.strip() else None
         if summary is None and not points:
             notes.append(f"{where}: 남은 문장이 없어 기여 전체를 뺐습니다.")
             continue
         if summary is None:  # 요약 문장만 근거가 없으면 첫 포인트를 요약으로 올린다
             summary, points = points[0], points[1:]
-        contributions.append(Contribution(title=c.title, summary=summary, points=points, technologies=c.technologies))
+        contributions.append(
+            Contribution(
+                title=c.title,
+                background=background,
+                summary=summary,
+                points=points,
+                outcome=outcome,
+                technologies=c.technologies,
+            )
+        )
 
     # ---- 슬라이드
     slides: list[Slide] = []
@@ -167,5 +179,5 @@ def validate_outputs(
             tech_stack=[TechGroup(category=g.category, items=g.items) for g in p.tech_stack if g.items],
         ),
         slides=slides,
-        theme=raw.theme,
+        design=raw.design,
     )

@@ -8,6 +8,7 @@ from app.config import Settings
 from app.errors import LLMError
 from app.models import (
     ApiStats,
+    Design,
     CollectResult,
     CollectStats,
     Commit,
@@ -163,6 +164,12 @@ def st(text: str, *refs: str) -> LLMStatement:
     return LLMStatement(text=text, evidence=list(refs))
 
 
+def contrib(title, summary, points=(), technologies=(), background=None, outcome=None) -> LLMContribution:
+    """배경·결과는 비워 두는 것이 정상이라 기본값은 빈 문장이다 (검증에서 None이 된다)"""
+    return LLMContribution(title=title, background=background or st(""), summary=summary, points=list(points),
+                           outcome=outcome or st(""), technologies=list(technologies))
+
+
 def slide(layout, title, points=(), highlights=(), notes="", headline="h") -> LLMSlide:
     return LLMSlide(layout=layout, title=title, headline=headline, points=list(points), highlights=list(highlights),
                     flow=[], notes=notes)
@@ -174,16 +181,21 @@ def test_validate_outputs():
             tagline="데스크 시뮬레이터",
             overview="100명이 쓰는 앱",  # README·커밋에 없는 숫자
             contributions=[
-                LLMContribution(title="카탈로그", summary=st("제품 19종 카탈로그 구현", "C01"),
-                                points=[st("재시도 5회로 변경", "C02"), st("성능 40% 개선", "C02"), st("근거 없는 문장", "C42")],
-                                technologies=["TS"]),
-                # 요약 문장 근거가 없으면 첫 포인트가 요약으로 올라간다
-                LLMContribution(title="3D", summary=st("요약", "C99"), points=[st("three.js 장면", "C03")], technologies=[]),
-                LLMContribution(title="가짜", summary=st("없음", "C55"), points=[], technologies=[]),
+                contrib("카탈로그", st("제품 19종 카탈로그 구현", "C01"),
+                        points=[st("재시도 5회로 변경", "C02"), st("성능 40% 개선", "C02"), st("근거 없는 문장", "C42")],
+                        technologies=["TS"],
+                        background=st("고를 수 있는 제품 목록이 없었다", "C01"),
+                        outcome=st("제품 19종을 고를 수 있다", "C01")),
+                # 요약 문장 근거가 없으면 첫 포인트가 요약으로 올라간다.
+                # 배경은 근거가 없고, 결과는 근거에 없는 숫자라서 둘 다 빠진다
+                contrib("3D", st("요약", "C99"), points=[st("three.js 장면", "C03")],
+                        background=st("입체로 볼 방법이 없었다", "C99"),
+                        outcome=st("속도가 3배 빨라졌다", "C03")),
+                contrib("가짜", st("없음", "C55")),
             ],
             tech_stack=[LLMTechGroup(category="Frontend", items=["TypeScript"]), LLMTechGroup(category="빈 분야", items=[])],
         ),
-        theme="sunset",
+        design=Design(palette="emerald", surface="dark", font="mono", cover="terminal"),
         slides=[
             slide("cover", "데스크보드"),
             slide("feature", "3D", points=[LLMSlidePoint(heading="장면", text="three.js 장면", evidence=["C03", "C01"])],
@@ -204,6 +216,12 @@ def test_validate_outputs():
     assert [pt.text for pt in catalog.points] == ["재시도 5회로 변경"]
     assert any("40" in n and "문장을 뺐습니다" in n for n in notes)
     assert three.summary.text == "three.js 장면" and three.points == []
+    # 배경·결과: 근거가 확인된 것만 남는다
+    assert catalog.background and catalog.background.text == "고를 수 있는 제품 목록이 없었다"
+    assert catalog.outcome and catalog.outcome.text == "제품 19종을 고를 수 있다"
+    assert three.background is None and three.outcome is None
+    assert any("3배" in n and "결과" in n for n in notes)
+    assert p.contributions[0].technologies == ["TS"]
     assert [g.category for g in p.tech_stack] == ["Frontend"]
     assert any("포트폴리오 개요" in n for n in notes)
 
@@ -216,7 +234,7 @@ def test_validate_outputs():
     assert any("3배" in n for n in notes)
     assert any("발표자 메모" in n for n in notes)  # "2주" 근거 없음
     assert out.slides[2].points[0].from_readme
-    assert out.theme == "sunset"
+    assert out.design and (out.design.surface, out.design.cover) == ("dark", "terminal")
 
 
 def test_llm_cache_and_provider_selection(tmp_path):
@@ -227,7 +245,8 @@ def test_llm_cache_and_provider_selection(tmp_path):
 
         def _call(self, system, prompt, schema):
             calls.append(prompt)
-            return schema(portfolio=LLMPortfolio(tagline="t", overview="o", contributions=[], tech_stack=[]), slides=[], theme="mono"), 10, 5
+            return schema(portfolio=LLMPortfolio(tagline="t", overview="o", contributions=[], tech_stack=[]), slides=[],
+                          design=Design(palette="slate", surface="ink", font="display", cover="mono")), 10, 5
 
     llm = CountingLLM(Settings(), LLMCache(tmp_path / "llm.sqlite3"))
     first = llm.parse(system="s", prompt="p", schema=LLMOutputs)

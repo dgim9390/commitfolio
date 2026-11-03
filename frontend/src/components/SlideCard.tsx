@@ -1,16 +1,16 @@
-import { SLIDE_THEMES, type SlideTheme } from '../slideThemes'
-import type { Slide, SlideThemeName } from '../types'
+import { resolveTheme, type Theme } from '../design'
+import type { Design, Slide } from '../types'
 import { ArrowRightIcon, CheckIcon } from './icons'
 
 // 슬라이드 한 장. 화면 미리보기·썸네일·PDF 인쇄에 같이 쓴다.
 // 글자 크기는 cqw(컨테이너 폭의 1%) 단위라서, 감싸는 요소에 container-type만 주면
 // 썸네일이든 전체 화면이든 같은 비율로 보인다.
-// 색·글꼴·장식은 테마(slideThemes.ts)에서 가져오고, 여기서는 배치만 정한다.
+// 색·글꼴·장식은 디자인 조합(design.ts)이 CSS 변수로 내려 주고, 여기서는 배치만 정한다.
 
 export interface DeckMeta {
   repoName: string
   owner: string
-  theme: SlideThemeName
+  design: Design
 }
 
 const LAYOUT_LABEL: Record<Slide['layout'], string> = {
@@ -26,10 +26,10 @@ const LAYOUT_LABEL: Record<Slide['layout'], string> = {
 const COLS = ['grid-cols-1', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-2']
 
 export function SlideCard({ slide, index, total, meta }: { slide: Slide; index: number; total: number; meta: DeckMeta }) {
-  const t = SLIDE_THEMES[meta.theme] ?? SLIDE_THEMES.aurora
+  const t = resolveTheme(meta.design)
   if (slide.layout === 'cover') return <Cover slide={slide} meta={meta} t={t} />
   return (
-    <div className={`flex h-full w-full flex-col px-[5.5%] pt-[4.5%] pb-[3%] ${t.page}`}>
+    <div style={t.vars} className={`flex h-full w-full flex-col px-[5.5%] pt-[4.5%] pb-[3%] ${t.page}`}>
       <header>
         <p className={`text-[1.05cqw] font-semibold tracking-[0.2em] ${t.kicker}`}>{LAYOUT_LABEL[slide.layout]}</p>
         <h2 className={`mt-[0.6%] text-[3cqw] leading-tight ${t.heading}`}>{slide.title}</h2>
@@ -52,7 +52,7 @@ export function SlideCard({ slide, index, total, meta }: { slide: Slide; index: 
   )
 }
 
-function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme }) {
+function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: Theme }) {
   const c = t.cover
   const title = <h1 className={`text-[6.2cqw] leading-none ${c.title}`}>{slide.title}</h1>
   const sub = <p className={`mt-[2.2%] max-w-[75%] text-[2.2cqw] leading-snug ${c.sub}`}>{slide.headline}</p>
@@ -60,13 +60,13 @@ function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme
   // 터미널: 창 테두리 + 명령어 줄 + 깜빡이는 커서
   if (c.style === 'terminal') {
     return (
-      <div className={`flex h-full w-full flex-col p-[4%] ${c.bg}`}>
-        <div className="flex flex-1 flex-col overflow-hidden rounded-[1cqw] ring-1 ring-white/10">
-          <div className="flex items-center gap-[0.7cqw] border-b border-white/10 bg-white/[0.03] px-[1.6cqw] py-[1cqw]">
+      <div style={t.vars} className={`flex h-full w-full flex-col p-[4%] ${c.bg}`}>
+        <div className={`flex flex-1 flex-col overflow-hidden rounded-[1cqw] ${c.ring}`}>
+          <div className={`flex items-center gap-[0.7cqw] border-b px-[1.6cqw] py-[1cqw] ${c.line} ${c.fill}`}>
             {['bg-red-400/80', 'bg-amber-300/80', 'bg-emerald-400/80'].map((dot) => (
               <span key={dot} className={`h-[1cqw] w-[1cqw] rounded-full ${dot}`} />
             ))}
-            <span className="ml-[1cqw] font-mono text-[1.1cqw] text-slate-500">
+            <span className={`ml-[1cqw] font-mono text-[1.1cqw] ${c.dim}`}>
               ~/{meta.owner}/{meta.repoName}
             </span>
           </div>
@@ -74,9 +74,9 @@ function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme
             <p className={`text-[1.4cqw] ${c.label}`}>$ cat README.md</p>
             <div className="mt-[2%] flex items-end gap-[1cqw]">
               {title}
-              <span className="mb-[0.4cqw] h-[4.6cqw] w-[2cqw] animate-pulse bg-emerald-300" />
+              <span className={`mb-[0.4cqw] h-[4.6cqw] w-[2cqw] animate-pulse ${c.caret}`} />
             </div>
-            <p className="mt-[2.2%] max-w-[80%] font-mono text-[1.9cqw] leading-snug text-slate-400"># {slide.headline}</p>
+            <p className={`mt-[2.2%] max-w-[80%] font-mono text-[1.9cqw] leading-snug ${c.sub}`}># {slide.headline}</p>
           </div>
         </div>
       </div>
@@ -86,10 +86,10 @@ function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme
   // 페이퍼: 보고서 표지처럼 굵은 가로줄과 명조체
   if (c.style === 'paper') {
     return (
-      <div className={`flex h-full w-full flex-col justify-between p-[6%] ${c.bg}`}>
-        <div className="flex items-baseline justify-between border-b-[0.25cqw] border-stone-900 pb-[1.2%]">
+      <div style={t.vars} className={`flex h-full w-full flex-col justify-between p-[6%] ${c.bg}`}>
+        <div className={`flex items-baseline justify-between border-b-[0.25cqw] pb-[1.2%] ${c.line}`}>
           <p className={`text-[1.5cqw] ${c.label}`}>Project Report</p>
-          <p className="font-serif text-[1.2cqw] text-stone-500">
+          <p className={`text-[1.2cqw] ${c.dim}`}>
             {meta.owner}/{meta.repoName}
           </p>
         </div>
@@ -97,7 +97,7 @@ function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme
           {title}
           {sub}
         </div>
-        <div className="border-t border-stone-400" />
+        <div className={`border-t ${c.line}`} />
       </div>
     )
   }
@@ -105,10 +105,10 @@ function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme
   // 모노: 검은 바탕에 아주 큰 제목과 흰 막대
   if (c.style === 'mono') {
     return (
-      <div className={`flex h-full w-full flex-col justify-between p-[6%] ${c.bg}`}>
+      <div style={t.vars} className={`flex h-full w-full flex-col justify-between p-[6%] ${c.bg}`}>
         <p className={`text-[1.2cqw] font-semibold tracking-[0.3em] ${c.label}`}>{meta.owner.toUpperCase()}</p>
         <div>
-          <div className="mb-[3%] h-[0.8cqw] w-[12%] bg-white" />
+          <div className={`mb-[3%] h-[0.8cqw] w-[12%] ${c.caret}`} />
           <h1 className={`text-[8cqw] leading-[0.95] ${c.title}`}>{slide.title}</h1>
           {sub}
         </div>
@@ -119,7 +119,7 @@ function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme
 
   // 빛 번짐 (오로라·선셋·오션·포레스트)
   return (
-    <div className={`relative flex h-full w-full flex-col justify-between overflow-hidden p-[6%] ${c.bg}`}>
+    <div style={t.vars} className={`relative flex h-full w-full flex-col justify-between overflow-hidden p-[6%] ${c.bg}`}>
       <div className={`absolute -top-[20%] -right-[10%] h-[70%] w-[45%] rounded-full blur-3xl ${c.glowA}`} />
       <div className={`absolute -bottom-[30%] -left-[10%] h-[60%] w-[40%] rounded-full blur-3xl ${c.glowB}`} />
       <p className={`relative text-[1.2cqw] font-semibold tracking-[0.25em] ${c.label}`}>PROJECT · {meta.owner}</p>
@@ -133,7 +133,7 @@ function Cover({ slide, meta, t }: { slide: Slide; meta: DeckMeta; t: SlideTheme
   )
 }
 
-function Body({ slide, t }: { slide: Slide; t: SlideTheme }) {
+function Body({ slide, t }: { slide: Slide; t: Theme }) {
   const points = slide.points
 
   if (slide.layout === 'agenda') {

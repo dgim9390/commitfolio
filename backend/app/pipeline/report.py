@@ -21,8 +21,13 @@ def render_markdown(r: AnalysisResult) -> str:
     p = r.outputs.portfolio
     out += ["## 포트폴리오 소개글", "", f"**{p.tagline}**", "", p.overview or "(없음)", "", "### 주요 기여", ""]
     for c in p.contributions:
-        out += [f"#### {c.title}", "", evidence(c.summary), ""]
+        out += [f"#### {c.title}", ""]
+        if c.background:
+            out += [f"**배경** {evidence(c.background)}", ""]
+        out += [f"**한 일** {evidence(c.summary)}", ""]
         out += [f"- {evidence(pt)}" for pt in c.points]
+        if c.outcome:
+            out += ["", f"**결과** {evidence(c.outcome)}"]
         if c.technologies:
             out += ["", "기술: " + ", ".join(f"`{t}`" for t in c.technologies)]
         out.append("")

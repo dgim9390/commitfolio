@@ -12,6 +12,92 @@ body {
   word-break: keep-all; /* 한국어 단어가 줄 끝에서 쪼개지지 않게 */
 }
 
+/* 테마(design.ts): 색·글꼴은 --th-* 변수로 들어오고, 여기 클래스들이 그 변수를 읽는다.
+   조합이 몇 가지든 클래스는 이 목록 그대로라서 Tailwind가 만들 수 없는 조합 문제가 없다. */
+.th-page {
+  background: var(--th-page);
+  color: var(--th-fg);
+}
+.th-heading,
+.th-cover-title {
+  font-family: var(--th-heading-font);
+  font-weight: var(--th-heading-weight);
+  letter-spacing: var(--th-heading-tracking);
+}
+.th-cover-title {
+  color: var(--th-cover-fg);
+}
+.th-muted {
+  color: var(--th-muted);
+}
+.th-kicker {
+  color: var(--th-accent);
+  font-family: var(--th-heading-font);
+}
+.th-fill {
+  background: var(--th-fill);
+  color: var(--th-on-fill);
+}
+.th-on-fill-muted {
+  color: color-mix(in oklab, var(--th-on-fill) 78%, transparent);
+}
+.th-divider {
+  border-color: var(--th-border);
+}
+/* ring-1과 같은 두께를 내면서 배치는 바꾸지 않는다 (테두리를 쓰면 1px씩 커진다) */
+.th-card {
+  background: var(--th-card);
+  box-shadow: inset 0 0 0 1px var(--th-border);
+}
+.th-chip {
+  background: color-mix(in oklab, var(--th-accent) 12%, var(--th-page));
+  color: var(--th-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--th-accent) 30%, var(--th-page));
+}
+.th-number {
+  color: color-mix(in oklab, var(--th-accent) 42%, var(--th-page));
+}
+.th-arrow {
+  color: color-mix(in oklab, var(--th-accent) 60%, var(--th-page));
+}
+.th-bullet {
+  border-color: var(--th-accent);
+}
+.th-footer {
+  color: color-mix(in oklab, var(--th-muted) 70%, var(--th-page));
+}
+.th-cover {
+  background: var(--th-cover);
+  color: var(--th-cover-fg);
+}
+.th-cover-sub {
+  color: var(--th-cover-sub);
+}
+.th-cover-label {
+  color: var(--th-cover-label);
+}
+.th-cover-dim {
+  color: color-mix(in oklab, var(--th-cover-sub) 72%, transparent);
+}
+.th-cover-line {
+  border-color: var(--th-cover-line);
+}
+.th-cover-ring {
+  box-shadow: inset 0 0 0 1px var(--th-cover-line);
+}
+.th-cover-fill {
+  background: color-mix(in oklab, var(--th-cover-fg) 7%, transparent);
+}
+.th-cover-caret {
+  background: var(--th-cover-label);
+}
+.th-glow-a {
+  background: var(--th-glow-a);
+}
+.th-glow-b {
+  background: var(--th-glow-b);
+}
+
 /* PDF 저장(인쇄)할 때는 슬라이드만 한 장씩 16:9 페이지로 */
 .print-only {
   display: none;

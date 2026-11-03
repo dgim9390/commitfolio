@@ -8,7 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from app.config import Settings
-from app.models import CollectResult, GroupSummary, SlideLayout, SlideTheme
+from app.models import CollectResult, Design, GroupSummary, SlideLayout
 from app.pipeline.llm import BaseLLM
 from app.pipeline.summarize import SYSTEM_PROMPT
 from app.pipeline.text import CommitIndex
@@ -23,8 +23,10 @@ class LLMStatement(BaseModel):
 
 class LLMContribution(BaseModel):
     title: str
-    summary: LLMStatement
+    background: LLMStatement  # 배경 (근거 없으면 검증에서 빠진다)
+    summary: LLMStatement  # 한 일
     points: list[LLMStatement]
+    outcome: LLMStatement  # 결과 (확인되는 것이 없으면 text를 빈 문자열로)
     technologies: list[str]
 
 
@@ -65,7 +67,7 @@ class LLMSlide(BaseModel):
 class LLMOutputs(BaseModel):
     portfolio: LLMPortfolio
     slides: list[LLMSlide]
-    theme: SlideTheme
+    design: Design
 
 
 def generate_outputs(

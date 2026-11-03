@@ -16,10 +16,16 @@ export function statementText(s: Statement, r: AnalysisResult, withLinks: boolea
 export function portfolioMarkdown(r: AnalysisResult, withLinks: boolean): string {
   const p = r.outputs.portfolio
   const lines = [`## ${r.repo.name}`, `**${p.tagline}**`, '', p.overview, '', '### 주요 기여']
+  const filled = (s?: Statement | null) => (s && s.text.trim() ? s : null)
   for (const c of p.contributions) {
-    lines.push('', `#### ${c.title}`, statementText(c.summary, r, withLinks))
+    const background = filled(c.background)
+    const outcome = filled(c.outcome)
+    lines.push('', `#### ${c.title}`)
+    if (background) lines.push(`**배경** ${statementText(background, r, withLinks)}`, '')
+    lines.push(`**한 일** ${statementText(c.summary, r, withLinks)}`)
     lines.push(...c.points.map((pt) => `- ${statementText(pt, r, withLinks)}`))
-    if (c.technologies.length) lines.push(`- 기술: ${c.technologies.join(', ')}`)
+    if (outcome) lines.push('', `**결과** ${statementText(outcome, r, withLinks)}`)
+    if (c.technologies.length) lines.push('', `**기술** ${c.technologies.join(', ')}`)
   }
   lines.push('', '### 기술 스택', ...p.tech_stack.map((g) => `- **${g.category}**: ${g.items.join(', ')}`))
   return lines.join('\n')

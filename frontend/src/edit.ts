@@ -16,13 +16,21 @@ export function editStatement<T extends Statement>(s: T, text: string): T {
 export function cleanOutputs(o: Outputs): Outputs {
   const filled = (s: Statement) => s.text.trim() !== ''
   const words = (xs: string[]) => xs.map((x) => x.trim()).filter(Boolean)
+  const kept = (s?: Statement | null) => (s && filled(s) ? s : null)
   return {
+    design: o.design,
     theme: o.theme,
     portfolio: {
       ...o.portfolio,
       contributions: o.portfolio.contributions
         .filter((c) => c.title.trim() || filled(c.summary))
-        .map((c) => ({ ...c, points: c.points.filter(filled), technologies: words(c.technologies) })),
+        .map((c) => ({
+          ...c,
+          background: kept(c.background),
+          outcome: kept(c.outcome),
+          points: c.points.filter(filled),
+          technologies: words(c.technologies),
+        })),
       tech_stack: o.portfolio.tech_stack
         .map((g) => ({ ...g, items: words(g.items) }))
         .filter((g) => g.category.trim() && g.items.length),

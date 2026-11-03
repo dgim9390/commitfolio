@@ -1,22 +1,24 @@
+import { designOf, resolveTheme, type Theme } from '../design'
 import { statementText } from '../format'
-import { SLIDE_THEMES, type SlideTheme } from '../slideThemes'
-import type { AnalysisResult, Contribution } from '../types'
+import type { AnalysisResult, Contribution, Statement } from '../types'
 import { CopyButton } from './CopyButton'
 import { Evidence } from './Evidence'
 import { CheckIcon } from './icons'
 
 /**
- * 테마가 적용된 포트폴리오 페이지 (보기 전용).
- * 발표 자료와 같은 테마를 써서 레포마다 다른 분위기로 보인다.
- * 테마 페이지는 자기 배경색을 가지므로 앱의 밝은/어두운 모드와 상관없이 같은 모습이다.
+ * 디자인이 적용된 포트폴리오 페이지 (보기 전용).
+ * 발표 자료와 같은 디자인 조합을 써서 레포마다 다른 분위기로 보인다.
+ * 색·글꼴은 design.ts가 CSS 변수로 내려 주므로 앱의 밝은/어두운 모드와 상관없이 같은 모습이다.
+ *
+ * 기여 하나는 "배경 → 한 일 → 결과" 순서로 읽히게 묶는다.
  */
 export function PortfolioView({ result, withLinks }: { result: AnalysisResult; withLinks: boolean }) {
-  const t = SLIDE_THEMES[result.outputs.theme ?? 'aurora'] ?? SLIDE_THEMES.aurora
+  const t = resolveTheme(designOf(result.outputs))
   const p = result.outputs.portfolio
   const surface = t.dark ? 'dark' : 'light'
 
   return (
-    <article className={`overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5 ${t.page}`}>
+    <article style={t.vars} className={`overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5 ${t.page}`}>
       <Hero t={t} result={result} />
 
       <div className="space-y-12 px-6 py-10 sm:px-10">
@@ -58,12 +60,12 @@ export function PortfolioView({ result, withLinks }: { result: AnalysisResult; w
   )
 }
 
-function Kicker({ t, children }: { t: SlideTheme; children: React.ReactNode }) {
+function Kicker({ t, children }: { t: Theme; children: React.ReactNode }) {
   return <p className={`text-xs font-semibold tracking-[0.2em] ${t.kicker}`}>{children}</p>
 }
 
 /** 맨 위 머리말: 발표 자료 표지와 같은 네 가지 방식 */
-function Hero({ t, result }: { t: SlideTheme; result: AnalysisResult }) {
+function Hero({ t, result }: { t: Theme; result: AnalysisResult }) {
   const c = t.cover
   const p = result.outputs.portfolio
   const name = result.repo.name
@@ -72,17 +74,17 @@ function Hero({ t, result }: { t: SlideTheme; result: AnalysisResult }) {
   if (c.style === 'terminal') {
     return (
       <header className={`px-6 py-8 sm:px-10 ${c.bg}`}>
-        <div className="overflow-hidden rounded-xl ring-1 ring-white/10">
-          <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/[0.03] px-4 py-2.5">
+        <div className={`overflow-hidden rounded-xl ${c.ring}`}>
+          <div className={`flex items-center gap-1.5 border-b px-4 py-2.5 ${c.line} ${c.fill}`}>
             {['bg-red-400/80', 'bg-amber-300/80', 'bg-emerald-400/80'].map((dot) => (
               <span key={dot} className={`h-2.5 w-2.5 rounded-full ${dot}`} />
             ))}
-            <span className="ml-2 font-mono text-xs text-slate-500">~/{path}</span>
+            <span className={`ml-2 font-mono text-xs ${c.dim}`}>~/{path}</span>
           </div>
           <div className="px-6 py-8">
             <p className={`text-sm ${c.label}`}>$ cat portfolio.md</p>
             <h2 className={`mt-3 text-4xl sm:text-5xl ${c.title}`}>{name}</h2>
-            <p className="mt-3 font-mono text-sm text-slate-400"># {p.tagline}</p>
+            <p className={`mt-3 font-mono text-sm ${c.sub}`}># {p.tagline}</p>
           </div>
         </div>
       </header>
@@ -92,9 +94,9 @@ function Hero({ t, result }: { t: SlideTheme; result: AnalysisResult }) {
   if (c.style === 'paper') {
     return (
       <header className={`px-6 pt-10 pb-8 sm:px-10 ${c.bg}`}>
-        <div className="flex items-baseline justify-between border-b-2 border-stone-900 pb-2">
+        <div className={`flex items-baseline justify-between border-b-2 pb-2 ${c.line}`}>
           <p className={`text-sm ${c.label}`}>Portfolio</p>
-          <p className="font-serif text-xs text-stone-500">{path}</p>
+          <p className={`text-xs ${c.dim}`}>{path}</p>
         </div>
         <h2 className={`mt-8 text-4xl sm:text-5xl ${c.title}`}>{name}</h2>
         <p className={`mt-3 text-lg ${c.sub}`}>{p.tagline}</p>
@@ -106,7 +108,7 @@ function Hero({ t, result }: { t: SlideTheme; result: AnalysisResult }) {
     return (
       <header className={`px-6 py-10 sm:px-10 ${c.bg}`}>
         <p className={`text-xs font-semibold tracking-[0.3em] ${c.label}`}>{result.repo.owner.toUpperCase()}</p>
-        <div className="mt-8 mb-4 h-1.5 w-16 bg-white" />
+        <div className={`mt-8 mb-4 h-1.5 w-16 ${c.caret}`} />
         <h2 className={`text-5xl sm:text-6xl ${c.title}`}>{name}</h2>
         <p className={`mt-3 text-lg ${c.sub}`}>{p.tagline}</p>
       </header>
@@ -124,6 +126,16 @@ function Hero({ t, result }: { t: SlideTheme; result: AnalysisResult }) {
   )
 }
 
+/** 배경·한 일·결과를 같은 라벨 폭으로 맞춰서 세 단이 눈에 바로 들어오게 한다 */
+function Row({ t, label, children }: { t: Theme; label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid gap-1 sm:grid-cols-[3.75rem_1fr] sm:gap-3">
+      <p className={`pt-0.5 text-xs font-semibold tracking-wide ${t.kicker}`}>{label}</p>
+      <div className="min-w-0">{children}</div>
+    </div>
+  )
+}
+
 function ContributionCard({
   c,
   index,
@@ -134,13 +146,22 @@ function ContributionCard({
 }: {
   c: Contribution
   index: number
-  t: SlideTheme
+  t: Theme
   result: AnalysisResult
   withLinks: boolean
   surface: 'light' | 'dark'
 }) {
+  const filled = (s?: Statement | null) => (s && s.text.trim() ? s : null)
+  const background = filled(c.background)
+  const outcome = filled(c.outcome)
   const copyText = () =>
-    [c.title, statementText(c.summary, result, withLinks), ...c.points.map((p) => `- ${statementText(p, result, withLinks)}`)].join('\n')
+    [
+      c.title,
+      ...(background ? [`배경: ${statementText(background, result, withLinks)}`] : []),
+      `한 일: ${statementText(c.summary, result, withLinks)}`,
+      ...c.points.map((p) => `- ${statementText(p, result, withLinks)}`),
+      ...(outcome ? [`결과: ${statementText(outcome, result, withLinks)}`] : []),
+    ].join('\n')
 
   return (
     <li className={`group rounded-2xl p-5 sm:p-6 ${t.card}`}>
@@ -153,25 +174,43 @@ function ContributionCard({
             <h4 className={`text-lg leading-tight ${t.heading}`}>{c.title}</h4>
             <CopyButton text={copyText} className="shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100" />
           </div>
-          <p className="mt-2 leading-7">{c.summary.text}</p>
-          <Evidence statement={c.summary} result={result} surface={surface} />
 
-          {c.points.length > 0 && (
-            <ul className={`mt-4 space-y-3 border-t pt-4 ${t.divider}`}>
-              {c.points.map((p, i) => (
-                <li key={i} className="flex gap-2.5">
-                  <CheckIcon className={`mt-1 h-4 w-4 shrink-0 ${t.kicker}`} />
-                  <div className="min-w-0">
-                    <p className={`text-[15px] leading-6 ${t.muted}`}>{p.text}</p>
-                    <Evidence statement={p} result={result} surface={surface} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="mt-3 space-y-3">
+            {background && (
+              <Row t={t} label="배경">
+                <p className={`text-[15px] leading-7 ${t.muted}`}>{background.text}</p>
+                <Evidence statement={background} result={result} surface={surface} />
+              </Row>
+            )}
+
+            <Row t={t} label="한 일">
+              <p className="leading-7">{c.summary.text}</p>
+              <Evidence statement={c.summary} result={result} surface={surface} />
+              {c.points.length > 0 && (
+                <ul className="mt-3 space-y-2.5">
+                  {c.points.map((p, i) => (
+                    <li key={i} className="flex gap-2.5">
+                      <CheckIcon className={`mt-1 h-4 w-4 shrink-0 ${t.kicker}`} />
+                      <div className="min-w-0">
+                        <p className={`text-[15px] leading-6 ${t.muted}`}>{p.text}</p>
+                        <Evidence statement={p} result={result} surface={surface} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Row>
+
+            {outcome && (
+              <Row t={t} label="결과">
+                <p className="leading-7 font-medium">{outcome.text}</p>
+                <Evidence statement={outcome} result={result} surface={surface} />
+              </Row>
+            )}
+          </div>
 
           {c.technologies.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
+            <div className={`mt-4 flex flex-wrap gap-1.5 border-t pt-4 ${t.divider}`}>
               {c.technologies.map((tech) => (
                 <span key={tech} className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${t.chip}`}>
                   {tech}
