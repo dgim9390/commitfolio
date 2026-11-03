@@ -11,7 +11,7 @@
   <img src="docs/slide-cover.png" width="49%" alt="발표 자료 표지" />
   <img src="docs/slide-architecture.png" width="49%" alt="발표 자료 구조 슬라이드" />
 </p>
-<p align="center"><sub>dgim9390/DeskBoard(커밋 39개)를 분석한 결과</sub></p>
+<p align="center"><sub>dgim9390/DeskBoard(커밋 42개)를 분석한 결과. 디자인은 AI가 고른 조합(앰버 · 잉크 · 디스플레이 · 블랙 표지)입니다.</sub></p>
 
 ## 왜 만들었나
 
@@ -35,9 +35,11 @@ AI에게 "내 프로젝트로 포트폴리오 써 줘"라고 하면 그럴듯하
 **레포마다 다른 디자인**
 - AI가 프로젝트 성격을 보고 **색(15) × 배경(5) × 글꼴(4) × 표지(4)** 를 조합합니다. 포트폴리오와 발표 자료에 같이 적용됩니다.
 
-| 터미널 · 개발 도구 | 페이퍼 · 문서·연구 | 오션 · 데이터·모바일 | 모노 · 미니멀 |
+같은 결과를 다른 조합으로 바꾼 예입니다.
+
+| 터미널 · 개발 도구 | 페이퍼 · 문서·연구 | 오션 · 데이터·모바일 | 선셋 · 소비자 앱 |
 |---|---|---|---|
-| <img src="docs/theme-terminal.png" alt="터미널 조합" /> | <img src="docs/theme-paper.png" alt="페이퍼 조합" /> | <img src="docs/theme-ocean.png" alt="오션 조합" /> | <img src="docs/theme-mono.png" alt="모노 조합" /> |
+| <img src="docs/design-terminal.png" alt="터미널 조합" /> | <img src="docs/design-paper.png" alt="페이퍼 조합" /> | <img src="docs/design-ocean.png" alt="오션 조합" /> | <img src="docs/design-sunset.png" alt="선셋 조합" /> |
 
 **직접 수정**
 - 마음에 안 들거나 사실과 다른 부분은 "수정하기"로 고칠 수 있습니다. 문장, 항목, 슬라이드 순서, 디자인 모두 바꿀 수 있습니다.
